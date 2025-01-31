@@ -1,5 +1,5 @@
-venv_prod/
-venv_dev/
+.venv_prod/
+.venv_dev/
 .env.dev
 .env.prod
 requirements.prod.txt

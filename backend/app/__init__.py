@@ -1,6 +1,6 @@
 from flask import Flask
-import os
 from dotenv import load_dotenv
+import os
 
 env_path = '.env.dev' if os.getenv('FLASK_ENV') == 'development' else '.env.prod'
 load_dotenv(dotenv_path=env_path)
