@@ -1,15 +1,17 @@
-from flask import Flask, redirect, url_for, session
+from flask import Flask
 from dotenv import load_dotenv
 import os
-from requests_oauthlib import OAuth2Session
+from app.routes.auth_routes import auth_bp
+from app.routes.user_routes import user_bp
+from app.config.settings import *
 
-env_path = '.env.dev' if os.getenv('FLASK_ENV') == 'development' else '.env.prod'
-load_dotenv(dotenv_path=env_path)
+def create_app():
+    """Initialize Flask app with configurations"""
 
-app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY")
+    app = Flask(__name__)
+    app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
-from . import routes 
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(user_bp)
 
-if __name__ == "__main__":
-    app.run(ssl_context=('cert.pem', 'key.pem'))
+    return app
