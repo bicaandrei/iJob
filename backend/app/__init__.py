@@ -12,7 +12,7 @@ def create_app():
 
     app = Flask(__name__)
     app.secret_key = os.getenv("FLASK_SECRET_KEY")
-    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:parola123@localhost:5432/iJob_db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
 
     db.init_app(app)
     migrate = Migrate(app, db)
