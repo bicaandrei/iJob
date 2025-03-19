@@ -14,8 +14,10 @@
 </template>
 
 <script setup>
+import router from "../router";
+
 const getStarted = () => {
-  console.log("Get Started clicked");
+  router.push("/signin");
 };
 </script>
 
