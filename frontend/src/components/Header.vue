@@ -1,13 +1,53 @@
 <template>
   <header class="header">
-    <h1 class="title">iJob</h1>
-    <button @click="signIn" class="sign-in-btn">Sign In</button>
+    <button class="title" @click="onTitleClick">iJob</button>
+    <button v-if="showLoginButton" @click="signIn" class="sign-in-btn">
+      Log In
+    </button>
+    <button v-if="showLogoutButton" @click="signOut" class="sign-out-btn">
+      Log Out
+    </button>
   </header>
 </template>
 
 <script setup>
+import router from "../router";
+import { computed, onMounted, ref, watch } from "vue";
+import { useAuth } from "../api/authentication";
+import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
+import { useRoute } from "vue-router";
+import { isLoggedIn } from "../api/local-storage";
+
+const { logout } = useAuth();
+const route = useRoute();
+
+const showLoginButton = computed(() => {
+  return route.path === "/";
+});
+
+const showLogoutButton = computed(() => {
+  return route.name === "home-route";
+});
+
 const signIn = () => {
-  console.log("Sign In clicked");
+  router.push({ name: "login-route" });
+};
+
+const signOut = async () => {
+  try {
+    logout();
+    router.push("/");
+  } catch (error) {
+    console.error("Error signing out:", error);
+  }
+};
+
+const onTitleClick = () => {
+  if (isLoggedIn()) {
+    router.push("/home");
+  } else {
+    router.push("/");
+  }
 };
 </script>
 
@@ -16,7 +56,7 @@ const signIn = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
+  padding: 20px;
   background-color: #007bff;
   color: white;
 }
@@ -24,12 +64,16 @@ const signIn = () => {
 .title {
   font-size: 24px;
   font-weight: bold;
-  margin-left: 5%;
+  margin-left: 2%;
+  background-color: #007bff;
+  border: none;
 }
 
-.sign-in-btn {
+.sign-in-btn,
+.sign-out-btn {
   padding: 8px 16px;
   font-size: 16px;
+  margin-right: 2%;
   background-color: white;
   color: #007bff;
   border: none;
@@ -37,7 +81,8 @@ const signIn = () => {
   cursor: pointer;
 }
 
-.sign-in-btn:hover {
+.sign-in-btn:hover,
+.sign-out-btn:hover {
   background-color: #e0e0e0;
 }
 </style>

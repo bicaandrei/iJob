@@ -1,23 +1,26 @@
-from flask import Flask
+from flask import Flask, Blueprint
 from dotenv import load_dotenv
 import os
-from app.routes.auth_routes import auth_bp
 from app.routes.user_routes import user_bp
-from app.config.settings import *
 from app.db.models import db
 from flask_migrate import Migrate
+from flask_cors import CORS
 
 def create_app():
     """Initialize Flask app with configurations"""
 
+    load_dotenv()
+
     app = Flask(__name__)
-    app.secret_key = os.getenv("FLASK_SECRET_KEY")
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
 
     db.init_app(app)
     migrate = Migrate(app, db)
-  
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(user_bp)
+
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
+
+    main_bp = Blueprint('main', __name__, url_prefix='/api')
+    main_bp.register_blueprint(user_bp)
+    app.register_blueprint(main_bp)
 
     return app
