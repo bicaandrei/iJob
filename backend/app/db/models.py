@@ -5,7 +5,7 @@ db = SQLAlchemy()
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    google_id = db.Column(db.String(50), unique=True, nullable=False)
+    google_uid = db.Column(db.String(255), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     profile_pic = db.Column(db.String(200), nullable=True)

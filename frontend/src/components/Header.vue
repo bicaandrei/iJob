@@ -4,7 +4,7 @@
     <button v-if="showLoginButton" @click="signIn" class="sign-in-btn">
       Log In
     </button>
-    <button v-else-if="isLoggedIn" @click="signOut" class="sign-out-btn">
+    <button v-if="showLogoutButton" @click="signOut" class="sign-out-btn">
       Log Out
     </button>
   </header>
@@ -16,17 +16,21 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useAuth } from "../api/authentication";
 import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
 import { useRoute } from "vue-router";
+import { isLoggedIn } from "../api/local-storage";
 
-const { isLoggedIn, logout } = useAuth();
+const { logout } = useAuth();
 const route = useRoute();
 
 const showLoginButton = computed(() => {
-  return !isLoggedIn.value && route.path !== "/signin";
+  return route.path === "/";
+});
+
+const showLogoutButton = computed(() => {
+  return route.name === "home-route";
 });
 
 const signIn = () => {
-  console.log("Sign In clicked");
-  router.push("/signin");
+  router.push({ name: "login-route" });
 };
 
 const signOut = async () => {
@@ -39,7 +43,7 @@ const signOut = async () => {
 };
 
 const onTitleClick = () => {
-  if (isLoggedIn.value === true) {
+  if (isLoggedIn()) {
     router.push("/home");
   } else {
     router.push("/");

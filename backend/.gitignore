@@ -2,6 +2,4 @@
 .venv_dev/
 .env.dev
 .env.prod
-cert.pem
-key.pem
 requirements.prod.txt

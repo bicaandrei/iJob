@@ -17,7 +17,7 @@
 import router from "../router";
 
 const getStarted = () => {
-  router.push("/signin");
+  router.push({ name: "account-type-selection-route" });
 };
 </script>
 

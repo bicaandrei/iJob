@@ -1,24 +1,30 @@
 import { ref } from "vue";
-import { auth, googleProvider } from "./firebase";
+import { auth, db, googleProvider } from "./firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
   onAuthStateChanged,
+  deleteUser,
   type User,
 } from "firebase/auth";
-import RETURN_TYPES from "../utils/error-codes";
+import { RETURN_TYPES } from "../utils/error-codes";
+import {
+  setLoggedInFlag,
+  isLoggedIn,
+  deleteLoggedInFlag,
+} from "./local-storage";
+import { doc, setDoc } from "firebase/firestore";
 
 const user = ref<User | null>(null);
-const isLoggedIn = ref(false);
 
 onAuthStateChanged(auth, (currentUser) => {
   user.value = currentUser;
-  isLoggedIn.value = currentUser !== null;
 });
 
-const register = async (
+const register_user = async (
+  username: string,
   email: string,
   password: string
 ): Promise<RETURN_TYPES> => {
@@ -29,9 +35,76 @@ const register = async (
       password
     );
     user.value = userCredential.user;
+
+    await setDoc(doc(db, "users", userCredential.user.uid), {
+      google_uid: userCredential.user.uid,
+      email: userCredential.user.email || "",
+      name: username,
+      profile_pic: userCredential.user.photoURL || "",
+      is_firm: false,
+      created_at: new Date(),
+    });
+
+    setLoggedInFlag();
     return RETURN_TYPES.SUCCESS;
   } catch (error: any) {
     console.error("Registration error:", error);
+    if (user.value) {
+      try {
+        await deleteUser(user.value);
+      } catch (deleteError) {
+        console.error("User deletion error:", deleteError);
+      }
+    }
+
+    if (error.code === "auth/email-already-in-use") {
+      return RETURN_TYPES.EMAIL_IN_USE;
+    } else {
+      return RETURN_TYPES.REGISTRATION_FAILED;
+    }
+  }
+};
+
+const register_firm = async (
+  company_name: string,
+  representative_name: string,
+  email: string,
+  cui: string,
+  telephone: string,
+  password: string
+): Promise<RETURN_TYPES> => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    user.value = userCredential.user;
+
+    await setDoc(doc(db, "firms", userCredential.user.uid), {
+      google_uid: userCredential.user.uid,
+      email: userCredential.user.email || "",
+      company_name: company_name,
+      representative_name: representative_name,
+      cui: cui,
+      telephone: telephone,
+      profile_pic: userCredential.user.photoURL || "",
+      is_firm: true,
+      created_at: new Date(),
+    });
+
+    setLoggedInFlag();
+    return RETURN_TYPES.SUCCESS;
+  } catch (error: any) {
+    console.error("Registration error:", error);
+    if (user.value) {
+      try {
+        await deleteUser(user.value);
+      } catch (deleteError) {
+        console.error("User deletion error:", deleteError);
+      }
+    }
+
     if (error.code === "auth/email-already-in-use") {
       return RETURN_TYPES.EMAIL_IN_USE;
     } else {
@@ -51,6 +124,8 @@ const loginWithEmail = async (
       password
     );
     user.value = userCredential.user;
+
+    setLoggedInFlag();
     return RETURN_TYPES.SUCCESS;
   } catch (error: any) {
     console.error("Email login error:", error);
@@ -68,6 +143,8 @@ const loginWithGoogle = async (): Promise<RETURN_TYPES> => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     user.value = result.user;
+
+    setLoggedInFlag();
     return RETURN_TYPES.SUCCESS;
   } catch (error: any) {
     console.error("Google login error:", error);
@@ -79,6 +156,7 @@ const logout = async () => {
   try {
     await signOut(auth);
     user.value = null;
+    deleteLoggedInFlag();
   } catch (error) {
     console.error("Logout error:", error);
   }
@@ -88,7 +166,8 @@ export function useAuth() {
   return {
     user,
     isLoggedIn,
-    register,
+    register_user,
+    register_firm,
     loginWithEmail,
     loginWithGoogle,
     logout,
