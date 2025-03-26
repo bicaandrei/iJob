@@ -1,4 +1,5 @@
 <template>
+  <Snackbar ref="snackbarRef" />
   <div class="auth-container">
     <h2 class="title">Register Firm Account</h2>
 
@@ -61,6 +62,7 @@ import {
   validateTelephone,
   validateName,
 } from "../utils/validation-rules";
+import Snackbar from "../components/Snackbar.vue";
 
 const company_name = ref("");
 const representative_name = ref("");
@@ -71,6 +73,7 @@ const password = ref("");
 const confirmPassword = ref("");
 const { register_firm } = useAuth();
 const errorMessage = ref("");
+const snackbarRef = ref<InstanceType<typeof Snackbar> | null>(null);
 
 const handleRegister = async () => {
   if (validateFirmForm()) {
@@ -83,7 +86,13 @@ const handleRegister = async () => {
       password.value
     );
     if (return_type === RETURN_TYPES.SUCCESS) {
-      router.push({ name: "home-route" });
+      snackbarRef.value?.showSnackbar(
+        "Account created successfully!",
+        "success"
+      );
+      setTimeout(() => {
+        router.push({ name: "home-route" });
+      }, 2000);
     } else if (return_type === RETURN_TYPES.EMAIL_IN_USE) {
       displayError(RETURN_TYPES.EMAIL_IN_USE);
     } else {
@@ -145,11 +154,7 @@ const validateFirmForm = (): Boolean => {
 };
 
 const displayError = (error_type: RETURN_TYPES) => {
-  errorMessage.value = getErrorType(error_type);
-
-  setTimeout(() => {
-    errorMessage.value = "";
-  }, 5000);
+  snackbarRef.value?.showSnackbar(getErrorType(error_type), "error");
 };
 </script>
 

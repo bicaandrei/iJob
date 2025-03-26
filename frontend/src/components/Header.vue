@@ -4,47 +4,46 @@
     <button v-if="showLoginButton" @click="signIn" class="sign-in-btn">
       Log In
     </button>
-    <button v-if="showLogoutButton" @click="signOut" class="sign-out-btn">
-      Log Out
-    </button>
+    <user-profile-dropdown class="profile-container" v-if="showLogoutButton" />
   </header>
 </template>
 
 <script setup>
 import router from "../router";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { useAuth } from "../api/authentication";
-import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
 import { useRoute } from "vue-router";
-import { isLoggedIn } from "../api/local-storage";
+import defaultProfilePicture from "../assets/default_profile_picture.png";
+import UserProfileDropdown from "./UserProfileDropdown.vue";
+import { useUserStore } from "../stores/user";
 
-const { logout } = useAuth();
+const { user, logout } = useAuth();
+const dropdownVisible = ref(false);
 const route = useRoute();
+const userStore = useUserStore();
 
 const showLoginButton = computed(() => {
   return route.path === "/";
 });
 
 const showLogoutButton = computed(() => {
-  return route.name === "home-route";
+  const isHome = route.name === "home-route";
+  const isClientOrChild = route.matched.some((r) => r.name === "client-route");
+
+  return isHome || isClientOrChild;
 });
+
+const toggleDropdown = () => {
+  dropdownVisible.value = !dropdownVisible.value;
+};
 
 const signIn = () => {
   router.push({ name: "login-route" });
 };
 
-const signOut = async () => {
-  try {
-    logout();
-    router.push("/");
-  } catch (error) {
-    console.error("Error signing out:", error);
-  }
-};
-
 const onTitleClick = () => {
-  if (isLoggedIn()) {
-    router.push("/home");
+  if (userStore.isAuthenticated) {
+    router.push({ name: "home-route" });
   } else {
     router.push("/");
   }
@@ -84,5 +83,84 @@ const onTitleClick = () => {
 .sign-in-btn:hover,
 .sign-out-btn:hover {
   background-color: #e0e0e0;
+}
+
+.profile-container {
+  position: relative;
+  margin-right: 2%;
+}
+
+.profile-picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.profile-picture-large {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-right: 10px;
+  border: 2px solid #007bff;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+  color: #333;
+}
+
+.profile-email {
+  font-size: 14px;
+  margin: 0;
+  color: #666;
+}
+
+.dropdown-options {
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-item {
+  padding: 10px 15px;
+  font-size: 14px;
+  color: #333;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
 }
 </style>

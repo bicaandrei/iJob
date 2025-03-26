@@ -1,6 +1,7 @@
 <template>
+  <Snackbar ref="snackbarRef" />
   <div class="auth-container">
-    <h2 class="title">Sign in</h2>
+    <h2 class="title">Log in</h2>
 
     <div class="form-group">
       <input v-model="email" type="email" placeholder="Email" class="input" />
@@ -10,8 +11,6 @@
         placeholder="Password"
         class="input"
       />
-
-      <span class="error-message-class"> {{ errorMessage }} </span>
 
       <button class="btn primary" @click="handleLoginWithEmail">Login</button>
     </div>
@@ -34,11 +33,12 @@ import { useAuth } from "../api/authentication";
 import router from "../router";
 import "../assets/styles.css";
 import { RETURN_TYPES, getErrorType } from "../utils/error-codes";
+import Snackbar from "../components/Snackbar.vue";
 
 const email = ref("");
 const password = ref("");
 const { loginWithEmail, loginWithGoogle } = useAuth();
-const errorMessage = ref("");
+const snackbarRef = ref<InstanceType<typeof Snackbar> | null>(null);
 
 const handleLoginWithEmail = async () => {
   if (!email.value || !password.value) {
@@ -49,7 +49,11 @@ const handleLoginWithEmail = async () => {
       password.value
     );
     if (return_type === RETURN_TYPES.SUCCESS) {
-      router.push({ name: "home-route" });
+      snackbarRef.value?.showSnackbar("Login was successful!", "success");
+
+      setTimeout(() => {
+        router.push({ name: "home-route" });
+      }, 2000);
     } else if (return_type === RETURN_TYPES.INVALID_CREDENTIALS) {
       displayError(RETURN_TYPES.INVALID_CREDENTIALS);
     } else {
@@ -61,18 +65,18 @@ const handleLoginWithEmail = async () => {
 const handleLoginWithGoogle = async () => {
   const return_type: RETURN_TYPES = await loginWithGoogle();
   if (return_type === RETURN_TYPES.SUCCESS) {
-    router.push({ name: "home-route" });
+    snackbarRef.value?.showSnackbar("Login was successful!", "success");
+
+    setTimeout(() => {
+      router.push({ name: "home-route" });
+    }, 2000);
   } else {
     displayError(RETURN_TYPES.GOOGLE_LOGIN_FAILED);
   }
 };
 
 const displayError = (error_type: RETURN_TYPES) => {
-  errorMessage.value = getErrorType(error_type);
-
-  setTimeout(() => {
-    errorMessage.value = "";
-  }, 5000);
+  snackbarRef.value?.showSnackbar(getErrorType(error_type), "error");
 };
 </script>
 
