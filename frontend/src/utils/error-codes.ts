@@ -6,15 +6,21 @@ enum RETURN_TYPES {
   INVALID_TELEPHONE_FORMAT,
   INVALID_USER_NAME_FORMAT,
   INVALID_FIRM_NAME_FORMAT,
+  INVALID_REQUIRED_EXPERIENCE_FORMAT,
   INVALID_REPRESENTATIVE_NAME_FORMAT,
+  INVALID_TECHNOLOGY_FORMAT,
   USER_NOT_FOUND,
   EMAIL_IN_USE,
   WEAK_PASSWORD,
   REGISTRATION_FAILED,
+  JOB_ADD_FAILED,
   CREDENTIALS_REQUIRED,
+  JOB_INFORMATION_REQUIRED,
+  EMPTY_TECH_STACK_INPUTS,
   GOOGLE_LOGIN_FAILED,
   PASSWORDS_NOT_MATCH,
   LOGIN_FAILED,
+  NO_TECHNOLOGIES_ADDED,
 }
 
 const getErrorType = (error_type: RETURN_TYPES): string => {
@@ -43,6 +49,18 @@ const getErrorType = (error_type: RETURN_TYPES): string => {
       return "Invalid company name format!";
     case RETURN_TYPES.INVALID_REPRESENTATIVE_NAME_FORMAT:
       return "Invalid representative name format!";
+    case RETURN_TYPES.INVALID_REQUIRED_EXPERIENCE_FORMAT:
+      return "Invalid required experience format!";
+    case RETURN_TYPES.INVALID_TECHNOLOGY_FORMAT:
+      return "Enter a valid technology!";
+    case RETURN_TYPES.NO_TECHNOLOGIES_ADDED:
+      return "No technologies chosen, tech stack will be set to: Any.";
+    case RETURN_TYPES.JOB_INFORMATION_REQUIRED:
+      return "Please complete every section!";
+    case RETURN_TYPES.EMPTY_TECH_STACK_INPUTS:
+      return "Please complete all the technology sections that are opened!";
+    case RETURN_TYPES.JOB_ADD_FAILED:
+      return "An error occured while trying to add this job. Please try again!";
     default:
       return "An error occurred!";
   }

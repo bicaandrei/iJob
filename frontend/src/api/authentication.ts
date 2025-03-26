@@ -10,12 +10,9 @@ import {
   type User,
 } from "firebase/auth";
 import { RETURN_TYPES } from "../utils/error-codes";
-import {
-  setLoggedInFlag,
-  isLoggedIn,
-  deleteLoggedInFlag,
-} from "./local-storage";
 import { doc, setDoc } from "firebase/firestore";
+import { firestoreCollectionsConfig } from "./firestore";
+import { setLoggedInFlag, deleteLoggedInFlag } from "./local-storage";
 
 const user = ref<User | null>(null);
 
@@ -36,14 +33,21 @@ const register_user = async (
     );
     user.value = userCredential.user;
 
-    await setDoc(doc(db, "users", userCredential.user.uid), {
-      google_uid: userCredential.user.uid,
-      email: userCredential.user.email || "",
-      name: username,
-      profile_pic: userCredential.user.photoURL || "",
-      is_firm: false,
-      created_at: new Date(),
-    });
+    await setDoc(
+      doc(
+        db,
+        firestoreCollectionsConfig.user_collection,
+        userCredential.user.uid
+      ),
+      {
+        google_uid: userCredential.user.uid,
+        email: userCredential.user.email || "",
+        name: username,
+        profile_pic: userCredential.user.photoURL || "",
+        is_firm: false,
+        created_at: new Date(),
+      }
+    );
 
     setLoggedInFlag();
     return RETURN_TYPES.SUCCESS;
@@ -81,17 +85,24 @@ const register_firm = async (
     );
     user.value = userCredential.user;
 
-    await setDoc(doc(db, "firms", userCredential.user.uid), {
-      google_uid: userCredential.user.uid,
-      email: userCredential.user.email || "",
-      company_name: company_name,
-      representative_name: representative_name,
-      cui: cui,
-      telephone: telephone,
-      profile_pic: userCredential.user.photoURL || "",
-      is_firm: true,
-      created_at: new Date(),
-    });
+    await setDoc(
+      doc(
+        db,
+        firestoreCollectionsConfig.firm_collection,
+        userCredential.user.uid
+      ),
+      {
+        google_uid: userCredential.user.uid,
+        email: userCredential.user.email || "",
+        company_name: company_name,
+        representative_name: representative_name,
+        cui: cui,
+        telephone: telephone,
+        profile_pic: userCredential.user.photoURL || "",
+        is_firm: true,
+        created_at: new Date(),
+      }
+    );
 
     setLoggedInFlag();
     return RETURN_TYPES.SUCCESS;
@@ -155,8 +166,9 @@ const loginWithGoogle = async (): Promise<RETURN_TYPES> => {
 const logout = async () => {
   try {
     await signOut(auth);
-    user.value = null;
+
     deleteLoggedInFlag();
+    user.value = null;
   } catch (error) {
     console.error("Logout error:", error);
   }
@@ -165,7 +177,6 @@ const logout = async () => {
 export function useAuth() {
   return {
     user,
-    isLoggedIn,
     register_user,
     register_firm,
     loginWithEmail,

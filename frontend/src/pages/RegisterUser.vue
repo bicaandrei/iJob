@@ -1,4 +1,5 @@
 <template>
+  <Snackbar ref="snackbarRef" />
   <div class="auth-container">
     <h2 class="title">Register User Account</h2>
 
@@ -18,9 +19,17 @@
         class="input"
       />
 
-      <span class="error-message-class"> {{ errorMessage }} </span>
-
       <button class="btn primary" @click="handleRegister">Register</button>
+
+      <div class="divider">or</div>
+      <button class="btn google" @click="handleLoginWithGoogle">
+        <img
+          src="https://www.svgrepo.com/show/355037/google.svg"
+          alt="Google"
+          class="google-icon"
+        />
+        Continue with Google
+      </button>
     </div>
   </div>
 </template>
@@ -32,13 +41,15 @@ import router from "../router";
 import "../assets/styles.css";
 import { RETURN_TYPES, getErrorType } from "../utils/error-codes";
 import { validateEmail, validateName } from "../utils/validation-rules";
+import { setUserDocument } from "../api/firestore";
+import Snackbar from "../components/Snackbar.vue";
 
 const username = ref("");
 const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
-const { register_user } = useAuth();
-const errorMessage = ref("");
+const { user, register_user, loginWithGoogle } = useAuth();
+const snackbarRef = ref<InstanceType<typeof Snackbar> | null>(null);
 
 const handleRegister = async () => {
   if (validateUserForm()) {
@@ -48,12 +59,34 @@ const handleRegister = async () => {
       password.value
     );
     if (return_type === RETURN_TYPES.SUCCESS) {
-      router.push({ name: "home-route" });
+      snackbarRef.value?.showSnackbar(
+        "Account created successfully!",
+        "success"
+      );
+      setTimeout(() => {
+        router.push({ name: "home-route" });
+      }, 2000);
     } else if (return_type === RETURN_TYPES.EMAIL_IN_USE) {
       displayError(RETURN_TYPES.EMAIL_IN_USE);
     } else {
       displayError(RETURN_TYPES.REGISTRATION_FAILED);
     }
+  }
+};
+
+const handleLoginWithGoogle = async () => {
+  const return_type: RETURN_TYPES = await loginWithGoogle();
+  if (return_type === RETURN_TYPES.SUCCESS) {
+    await setUserDocument(
+      user.value?.uid || "",
+      user.value?.email || "",
+      user.value?.displayName || "Anonymous",
+      user.value?.photoURL || ""
+    );
+
+    router.push({ name: "home-route" });
+  } else {
+    displayError(RETURN_TYPES.GOOGLE_LOGIN_FAILED);
   }
 };
 
@@ -92,10 +125,7 @@ const validateUserForm = (): Boolean => {
 };
 
 const displayError = (error_type: RETURN_TYPES) => {
-  errorMessage.value = getErrorType(error_type);
-  setTimeout(() => {
-    errorMessage.value = "";
-  }, 5000);
+  snackbarRef.value?.showSnackbar(getErrorType(error_type), "error");
 };
 </script>
 
