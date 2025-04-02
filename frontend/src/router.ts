@@ -11,6 +11,8 @@ import { ref } from "vue";
 
 import AddJob from "./pages/AddJob.vue";
 import EditJob from "./pages/EditJob.vue";
+import JobDetails from "./pages/JobDetails.vue";
+import UserJobApplications from "./pages/UserJobApplications.vue";
 
 const routes = [
   { path: "/", name: "landing-route", component: Landing },
@@ -49,10 +51,19 @@ const routes = [
         component: AddJob,
       },
       {
-        path: "firm/edit-job/:id",
+        path: "/firm/edit-job/:id",
         name: "firm-edit-job-route",
         component: EditJob,
-        props: true,
+      },
+      {
+        path: "/user/job-details/:id",
+        name: "user-job-details-route",
+        component: JobDetails,
+      },
+      {
+        path: "/user/job-applications",
+        name: "user-job-applications-route",
+        component: UserJobApplications,
       },
     ],
   },
