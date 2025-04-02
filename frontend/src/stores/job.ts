@@ -12,6 +12,15 @@ export const useJobStore = defineStore("job", {
       this.jobs = fetchedJobs || [];
     },
     async addJob(firm_id: string) {
+      this.clearJobs();
+      await this.loadJobs(firm_id);
+    },
+    async editJob(firm_id: string) {
+      this.clearJobs();
+      await this.loadJobs(firm_id);
+    },
+    async deleteJob(firm_id: string) {
+      this.clearJobs();
       await this.loadJobs(firm_id);
     },
     clearJobs() {

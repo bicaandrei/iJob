@@ -3,8 +3,10 @@ interface Job {
   firm_id: string;
   title: string;
   position: "Intern" | "Junior" | "Middle" | "Senior" | "";
+  requiredExperience: string;
   description: string;
   techStack: string[];
+  created_at: Date;
 }
 
 interface JobForm {
@@ -12,7 +14,22 @@ interface JobForm {
   description: string;
   position: "Intern" | "Junior" | "Middle" | "Senior" | "";
   requiredExperience: string;
-  techStack: string[]; // Each tech has a name and editable state
+  techStack: string[];
 }
 
-export type { Job, JobForm };
+interface JobFirm {
+  id: string;
+  firm_id: string;
+  title: string;
+  position: "Intern" | "Junior" | "Middle" | "Senior" | "";
+  requiredExperience: string;
+  description: string;
+  techStack: string[];
+  created_at: Date;
+  company_name: string;
+  email: string;
+  firm_profile_pic: string;
+  telephone: string;
+}
+
+export type { Job, JobForm, JobFirm };

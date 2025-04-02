@@ -26,8 +26,8 @@
         <button @click="goToProfile" class="dropdown-item">
           {{ accountOption }}
         </button>
-        <button v-if="firmAdsOption" class="dropdown-item">
-          {{ firmAdsOption }}
+        <button @click="goToJobApplications" class="dropdown-item">
+          {{ jobApplicationsOption }}
         </button>
         <button @click="signOut" class="dropdown-item">Log Out</button>
       </div>
@@ -75,13 +75,12 @@ const accountOption = computed(() => {
   return userStore.isFirm ? "My Firm" : "My Account";
 });
 
-const firmAdsOption = computed(() => {
-  return userStore.isFirm ? "Firm ads" : false;
+const jobApplicationsOption = computed(() => {
+  return userStore.isFirm ? "Firm ads" : "My Applications";
 });
 
 const toggleDropdown = () => {
   dropdownVisible.value = !dropdownVisible.value;
-  console.log(user.value.photoURL);
 };
 
 const closeDropdown = () => {
@@ -122,6 +121,13 @@ const signOut = async () => {
 const goToProfile = () => {
   closeDropdown();
   router.push({ name: "client-account-route" });
+};
+
+const goToJobApplications = () => {
+  closeDropdown();
+  if (!storeUser.isFirm) {
+    router.push({ name: "user-job-applications-route" });
+  }
 };
 </script>
 

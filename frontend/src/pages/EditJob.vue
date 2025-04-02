@@ -1,207 +1,264 @@
 <template>
+  <Snackbar ref="snackbarRef" />
   <div class="form-container">
     <h1 class="page-title">Edit Job</h1>
-    <form @submit.prevent="updateJob" class="form-grid">
-      <div>
-        <label class="label">Job Title</label>
-        <input v-model="job.title" type="text" class="input" required />
-      </div>
 
-      <div>
-        <label class="label">Description</label>
-        <textarea
-          v-model="job.description"
-          class="input"
-          rows="4"
-          required
-        ></textarea>
-      </div>
+    <div class="form-group">
+      <input
+        v-model="job.title"
+        type="text"
+        placeholder="Job Title"
+        class="input"
+      />
+      <input
+        v-model="job.description"
+        type="text"
+        placeholder="Description"
+        class="input"
+      />
+      <select v-model="job.position" class="input">
+        <option disabled value="">Select position</option>
+        <option>Intern</option>
+        <option>Junior</option>
+        <option>Middle</option>
+        <option>Senior</option>
+      </select>
+      <input
+        v-model="job.requiredExperience"
+        type="text"
+        placeholder="Required Experience (e.g., 2-3 years)"
+        class="input"
+      />
 
-      <div>
-        <label class="label">Position</label>
-        <select v-model="job.position" class="input" required>
-          <option disabled value="">Select position</option>
-          <option>Junior</option>
-          <option>Middle</option>
-          <option>Senior</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="label">Required Experience</label>
+      <div
+        v-for="(_, index) in job.techStack"
+        :key="index"
+        class="tech-stack-container"
+      >
         <input
-          v-model="job.requiredExperience"
+          v-model="job.techStack[index]"
           type="text"
-          class="input"
-          required
+          placeholder="Enter technology"
+          class="tech-input"
         />
+        <button
+          type="button"
+          class="remove-tech-btn"
+          @click="removeTech(index)"
+        >
+          Remove
+        </button>
       </div>
+      <button type="button" class="add-tech-btn" @click="addTechInput">
+        Add Technology
+      </button>
 
-      <div>
-        <label class="label">Tech Stack</label>
-        <input
-          v-model="techStackInput"
-          @keydown.enter.prevent="addTech"
-          type="text"
-          class="input"
-          placeholder="Type and press Enter"
-        />
-        <div class="tech-tags">
-          <span
-            v-for="(tech, index) in job.techStack"
-            :key="index"
-            class="tech-tag"
-          >
-            {{ tech }}
-            <button @click="removeTech(index)" class="remove-tag">×</button>
-          </span>
-        </div>
-      </div>
+      <span class="error-message">{{ errorMessage }}</span>
 
-      <button type="submit" class="submit-btn">Update Job</button>
-    </form>
+      <button class="btn primary" @click="editJob">Edit Job</button>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
-
-interface JobForm {
-  id: number;
-  title: string;
-  description: string;
-  position: "Junior" | "Middle" | "Senior" | "";
-  requiredExperience: string;
-  techStack: string[];
-}
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import type { JobForm } from "../models/job";
+import { validateRequiredExperience } from "../utils/validation-rules";
+import { RETURN_TYPES, getErrorType } from "../utils/error-codes";
+import Snackbar from "../components/Snackbar.vue";
+import { editJobDocument, getJobById } from "../api/firestore";
+import { useAuth } from "../api/authentication";
+import { useJobStore } from "../stores/job";
 
 const router = useRouter();
 const route = useRoute();
-const techStackInput = ref("");
-
-// Mock: pretend this is coming from your API/backend/store
-const mockJobDB: JobForm[] = [
-  {
-    id: 1,
-    title: "Frontend Developer",
-    description: "Build UIs...",
-    position: "Middle",
-    requiredExperience: "3+ years",
-    techStack: ["Vue", "TypeScript"],
-  },
-  {
-    id: 2,
-    title: "Backend Engineer",
-    description: "Work on APIs...",
-    position: "Senior",
-    requiredExperience: "5+ years",
-    techStack: ["Node.js", "Postgres"],
-  },
-];
+const snackbarRef = ref<InstanceType<typeof Snackbar> | null>(null);
+const errorMessage = ref("");
+const { user } = useAuth();
+const jobStore = useJobStore();
 
 const job = ref<JobForm>({
-  id: Number(route.params.id),
   title: "",
   description: "",
   position: "",
   requiredExperience: "",
-  techStack: [],
+  techStack: [""],
 });
 
-onMounted(() => {
-  const foundJob = mockJobDB.find((j) => j.id === job.value.id);
-  if (foundJob) {
-    job.value = { ...foundJob };
-  } else {
-    router.push("/firm"); // Redirect if job not found
-  }
-});
-
-const addTech = () => {
-  if (techStackInput.value.trim()) {
-    job.value.techStack.push(techStackInput.value.trim());
-    techStackInput.value = "";
-  }
+const addTechInput = () => {
+  job.value.techStack.push("");
 };
 
 const removeTech = (index: number) => {
   job.value.techStack.splice(index, 1);
 };
 
-const updateJob = () => {
-  console.log("Updated job:", job.value);
-  router.push("/firm");
+const editJob = async () => {
+  if (validateForm()) {
+    const jobId = route.params.id as string;
+    const return_type: RETURN_TYPES = await editJobDocument(jobId, job.value);
+    if (return_type === RETURN_TYPES.SUCCESS) {
+      snackbarRef.value?.showSnackbar(
+        "Job was edited successfully!",
+        "success"
+      );
+      jobStore.editJob(user.value?.uid || "");
+      setTimeout(() => {
+        router.push({ name: "home-route" });
+      }, 2000);
+    } else {
+      displayError(return_type);
+    }
+  }
 };
+
+const validateForm = (): Boolean => {
+  if (
+    !job.value.title ||
+    !job.value.description ||
+    !job.value.position ||
+    !job.value.requiredExperience
+  ) {
+    displayError(RETURN_TYPES.JOB_INFORMATION_REQUIRED);
+    return false;
+  }
+
+  if (!validateRequiredExperience(job.value.requiredExperience)) {
+    displayError(RETURN_TYPES.INVALID_REQUIRED_EXPERIENCE_FORMAT);
+    return false;
+  }
+
+  const hasEmptyTech = job.value.techStack.some(
+    (technology) => technology.trim() === ""
+  );
+
+  if (hasEmptyTech) {
+    displayError(RETURN_TYPES.EMPTY_TECH_STACK_INPUTS);
+    return false;
+  }
+
+  return true;
+};
+
+const displayError = (error_type: RETURN_TYPES) => {
+  snackbarRef.value?.showSnackbar(getErrorType(error_type), "error");
+};
+
+onMounted(() => {
+  const jobId = route.params.id as string;
+  console.log(jobId);
+  if (jobId) {
+    getJobById(jobId).then((jobData) => {
+      if (jobData) {
+        if (jobData.techStack.length === 1 && jobData.techStack[0] === "Any") {
+          jobData.techStack = [];
+        }
+        job.value = jobData;
+      }
+    });
+  }
+});
 </script>
 
 <style scoped>
-/* Reusing the same styling from AddJobPage */
 .form-container {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 1.5rem;
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-}
-
-.form-grid {
-  display: grid;
+  max-width: 400px;
+  margin: 80px auto;
+  padding: 2rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
+  font-family: Arial, sans-serif;
 }
-
-.label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+.page-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
 }
-
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 .input {
-  width: 100%;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border 0.2s;
 }
-
-.tech-tags {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
-  gap: 0.5rem;
+.input:focus {
+  border-color: #007bff;
+  outline: none;
 }
-
-.tech-tag {
-  background: #e5e7eb;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
-  display: flex;
-  align-items: center;
-  font-size: 0.75rem;
+.tech-stack-container {
+  display: grid;
+  grid-template-columns: 1fr 0.2fr; /* Two columns: input takes most space, button takes minimal space */
+  gap: 2rem; /* Small gap between the input and the button */
+  align-items: center; /* Vertically align items */
 }
-
-.remove-tag {
-  margin-left: 0.25rem;
-  color: #dc2626;
-  background: none;
+.tech-input {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border 0.2s;
+  width: 100%; /* Ensure the input takes full width of its column */
+}
+.error-message {
+  color: red;
+  font-size: 0.9rem;
+  text-align: center;
+}
+.btn {
+  padding: 0.75rem;
   border: none;
-  font-size: 0.75rem;
+  border-radius: 8px;
+  font-size: 1rem;
   cursor: pointer;
+  transition: background 0.3s;
 }
-
-.submit-btn {
-  background: #2563eb;
+.primary {
+  background: #007bff;
+  color: #fff;
+}
+.primary:hover {
+  background: #0056b3;
+}
+.add-tech-btn {
+  background: #4caf50;
   color: #fff;
   padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
   transition: background 0.2s;
+  text-align: center;
+  margin-top: 0.5rem;
+  width: 50%;
 }
-
-.submit-btn:hover {
-  background: #1d4ed8;
+.add-tech-btn:hover {
+  background: #388e3c;
+}
+.remove-tech-btn {
+  background: #dc2626;
+  color: #fff;
+  padding: 0.75rem; /* Match the input height */
+  border-radius: 8px;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  height: 100%; /* Ensure it matches the input height */
+}
+.remove-tech-btn:hover {
+  background: #b91c1c;
 }
 </style>

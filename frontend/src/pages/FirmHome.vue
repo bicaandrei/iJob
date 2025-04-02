@@ -1,4 +1,5 @@
 <template>
+  <Snackbar ref="snackbarRef" />
   <div class="container">
     <aside class="sidebar">
       <button @click="goToAddJob" class="add-job-btn">➕ Add New Job</button>
@@ -39,10 +40,14 @@ import { useRouter } from "vue-router";
 import { useAuth } from "../api/authentication";
 import { useJobStore } from "../stores/job";
 import type { Job } from "../models/job";
+import { deleteJobById } from "../api/firestore";
+import Snackbar from "../components/Snackbar.vue";
+import { RETURN_TYPES, getErrorType } from "../utils/error-codes";
 
 const router = useRouter();
 const { user } = useAuth();
 const jobStore = useJobStore();
+const snackbarRef = ref<InstanceType<typeof Snackbar> | null>(null);
 
 const jobs = ref<Job[] | null>(null);
 const loading = ref(true);
@@ -52,26 +57,34 @@ const goToAddJob = () => {
 };
 
 const editJob = (id: string) => {
-  console.log("edit job: " + id);
+  router.push({ name: "firm-edit-job-route", params: { id } });
 };
 
-const deleteJob = (id: string) => {
-  console.log("delete job: " + id);
+const deleteJob = async (id: string) => {
+  try {
+    await deleteJobById(id);
+    await reloadJobs();
+  } catch (error: any) {
+    displayError(RETURN_TYPES.JOB_DELETE_FAILED);
+  }
 };
 
 const reloadJobs = async () => {
-  console.log("Reloading jobs...");
-  loading.value = true; // Set loading to true while fetching jobs
+  loading.value = true;
   await jobStore.loadJobs(user.value?.uid || "");
-  jobs.value = jobStore.jobs; // Update the reactive jobs array
-  loading.value = false; // Set loading to false after fetching jobs
+  jobs.value = jobStore.jobs;
+  loading.value = false;
+};
+
+const displayError = (error_type: RETURN_TYPES) => {
+  snackbarRef.value?.showSnackbar(getErrorType(error_type), "error");
 };
 
 onMounted(async () => {
   if (!jobStore.jobs.length) {
-    await reloadJobs(); // Fetch jobs on mount
+    await reloadJobs();
   } else {
-    jobs.value = jobStore.jobs; // Use already loaded jobs
+    jobs.value = jobStore.jobs;
     loading.value = false;
   }
 });

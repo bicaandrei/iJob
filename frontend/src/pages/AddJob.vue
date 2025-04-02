@@ -101,7 +101,6 @@ const submitJob = async () => {
     );
     if (return_type === RETURN_TYPES.SUCCESS) {
       snackbarRef.value?.showSnackbar("Job was added successfully!", "success");
-      jobStore.clearJobs();
       jobStore.addJob(user.value?.uid || "");
       setTimeout(() => {
         router.push({ name: "home-route" });
