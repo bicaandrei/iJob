@@ -5,6 +5,8 @@ interface Job {
   position: "Intern" | "Junior" | "Middle" | "Senior" | "";
   requiredExperience: string;
   description: string;
+  location: string;
+  is_remote: boolean;
   techStack: string[];
   created_at: Date;
 }
@@ -13,6 +15,8 @@ interface JobForm {
   title: string;
   description: string;
   position: "Intern" | "Junior" | "Middle" | "Senior" | "";
+  location: string;
+  is_remote: boolean;
   requiredExperience: string;
   techStack: string[];
 }
@@ -24,6 +28,8 @@ interface JobFirm {
   position: "Intern" | "Junior" | "Middle" | "Senior" | "";
   requiredExperience: string;
   description: string;
+  location: string;
+  is_remote: boolean;
   techStack: string[];
   created_at: Date;
   company_name: string;

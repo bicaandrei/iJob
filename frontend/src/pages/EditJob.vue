@@ -30,6 +30,13 @@
         class="input"
       />
 
+      <input
+        v-model="job.location"
+        type="text"
+        placeholder="Location"
+        class="input"
+      />
+
       <div
         v-for="(_, index) in job.techStack"
         :key="index"
@@ -53,7 +60,15 @@
         Add Technology
       </button>
 
-      <span class="error-message">{{ errorMessage }}</span>
+      <label for="remoteCheckbox" class="remote-checkbox-container">
+        Includes remote work:
+        <input
+          type="checkbox"
+          id="remoteCheckbox"
+          v-model="job.is_remote"
+          class="remote-checkbox"
+        />
+      </label>
 
       <button class="btn primary" @click="editJob">Edit Job</button>
     </div>
@@ -74,7 +89,6 @@ import { useJobStore } from "../stores/job";
 const router = useRouter();
 const route = useRoute();
 const snackbarRef = ref<InstanceType<typeof Snackbar> | null>(null);
-const errorMessage = ref("");
 const { user } = useAuth();
 const jobStore = useJobStore();
 
@@ -83,6 +97,8 @@ const job = ref<JobForm>({
   description: "",
   position: "",
   requiredExperience: "",
+  location: "",
+  is_remote: false,
   techStack: [""],
 });
 
@@ -260,5 +276,20 @@ onMounted(() => {
 }
 .remove-tech-btn:hover {
   background: #b91c1c;
+}
+.remote-checkbox-container {
+  display: flex;
+  align-items: center; /* Vertically align the checkbox and label */
+  gap: 0.5rem; /* Add spacing between the checkbox and the label */
+  font-size: 1rem; /* Adjust font size for the label */
+  cursor: pointer; /* Make the label clickable */
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.remote-checkbox {
+  width: 1.2rem; /* Adjust the size of the checkbox */
+  height: 1.2rem;
+  cursor: pointer; /* Add pointer cursor for better UX */
 }
 </style>

@@ -169,7 +169,9 @@ const getJobById = async (uid: string): Promise<JobForm | null> => {
         description: data.description || "",
         position: data.position || "",
         requiredExperience: data.requiredExperience || "",
+        location: data.location || "",
         techStack: Array.isArray(data.techStack) ? data.techStack : [""],
+        is_remote: data.is_remote,
       };
       return jobForm;
     }
