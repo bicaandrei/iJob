@@ -10,12 +10,13 @@
         placeholder="Job Title"
         class="input"
       />
-      <input
+      <textarea
         v-model="job.description"
         type="text"
         placeholder="Description"
-        class="input"
-      />
+        class="textarea"
+      ></textarea>
+
       <select v-model="job.position" class="input">
         <option disabled value="">Select position</option>
         <option>Intern</option>
@@ -27,6 +28,13 @@
         v-model="job.requiredExperience"
         type="text"
         placeholder="Required Experience (e.g., 2-3 years)"
+        class="input"
+      />
+
+      <input
+        v-model="job.location"
+        type="text"
+        placeholder="Location"
         class="input"
       />
 
@@ -49,11 +57,20 @@
           Remove
         </button>
       </div>
+
       <button type="button" class="add-tech-btn" @click="addTechInput">
         Add Technology
       </button>
 
-      <span class="error-message">{{ errorMessage }}</span>
+      <label for="remoteCheckbox" class="remote-checkbox-container">
+        Includes remote work:
+        <input
+          type="checkbox"
+          id="remoteCheckbox"
+          v-model="job.is_remote"
+          class="remote-checkbox"
+        />
+      </label>
 
       <button class="btn primary" @click="submitJob">Submit Job</button>
     </div>
@@ -73,7 +90,6 @@ import { useJobStore } from "../stores/job";
 
 const router = useRouter();
 const snackbarRef = ref<InstanceType<typeof Snackbar> | null>(null);
-const errorMessage = ref("");
 const { user } = useAuth();
 const jobStore = useJobStore();
 
@@ -82,6 +98,8 @@ const job = ref<JobForm>({
   description: "",
   position: "",
   requiredExperience: "",
+  location: "",
+  is_remote: false,
   techStack: [""],
 });
 
@@ -116,7 +134,8 @@ const validateForm = (): Boolean => {
     !job.value.title ||
     !job.value.description ||
     !job.value.position ||
-    !job.value.requiredExperience
+    !job.value.requiredExperience ||
+    !job.value.location
   ) {
     displayError(RETURN_TYPES.JOB_INFORMATION_REQUIRED);
     return false;
@@ -168,6 +187,20 @@ const displayError = (error_type: RETURN_TYPES) => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+.textarea {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border 0.2s;
+  font-family: Arial, sans-serif;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.textarea:focus {
+  border-color: #007bff;
+  outline: none;
 }
 .input {
   padding: 0.75rem;
@@ -243,5 +276,21 @@ const displayError = (error_type: RETURN_TYPES) => {
 }
 .remove-tech-btn:hover {
   background: #b91c1c;
+}
+
+.remote-checkbox-container {
+  display: flex;
+  align-items: center; /* Vertically align the checkbox and label */
+  gap: 0.5rem; /* Add spacing between the checkbox and the label */
+  font-size: 1rem; /* Adjust font size for the label */
+  cursor: pointer; /* Make the label clickable */
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.remote-checkbox {
+  width: 1.2rem; /* Adjust the size of the checkbox */
+  height: 1.2rem;
+  cursor: pointer; /* Add pointer cursor for better UX */
 }
 </style>

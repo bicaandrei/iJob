@@ -20,6 +20,10 @@
               <p class="tech-stack">
                 Tech Stack: <span>{{ job.techStack.join(", ") }}</span>
               </p>
+              <p class="job-location">Location: {{ job.location }}</p>
+              <p class="job-is-remote">
+                Includes remote work: {{ job.is_remote }}
+              </p>
             </div>
             <div class="card-actions">
               <button @click="editJob(job.id)" class="edit-btn">Edit</button>
@@ -171,6 +175,8 @@ onMounted(async () => {
   margin-top: 0.25rem;
 }
 
+.job-is-remote,
+.job-location,
 .tech-stack {
   font-size: 0.875rem;
   margin-top: 0.5rem;

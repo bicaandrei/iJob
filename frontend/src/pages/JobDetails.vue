@@ -6,11 +6,17 @@
     <p class="job-description">
       <strong>Description:</strong> {{ job?.description }}
     </p>
+    <p class="job-description">
+      <strong>Location:</strong> {{ job?.location }}
+    </p>
     <p class="job-experience">
       <strong>Required Experience:</strong> {{ job?.requiredExperience }}
     </p>
     <p class="job-tech-stack">
       <strong>Tech Stack:</strong> {{ job?.techStack.join(", ") }}
+    </p>
+    <p class="job-description">
+      <strong>Includes remote work:</strong> {{ job?.is_remote }}
     </p>
 
     <div v-if="isApplicationAlreadySent">
