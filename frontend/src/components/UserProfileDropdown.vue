@@ -1,7 +1,7 @@
 <template>
   <div>
     <img
-      :src="profilePicture"
+      :src="storeUser.profile_pic || defaultProfilePicture"
       alt="User Profile"
       class="profile-picture"
       @click="toggleDropdown"
@@ -10,7 +10,7 @@
     <div v-if="dropdownVisible" class="dropdown-menu">
       <div class="profile-info">
         <img
-          :src="profilePicture"
+          :src="storeUser.profile_pic || defaultProfilePicture"
           alt="User Profile"
           class="profile-picture-large"
         />
@@ -26,8 +26,12 @@
         <button @click="goToProfile" class="dropdown-item">
           {{ accountOption }}
         </button>
-        <button @click="goToJobApplications" class="dropdown-item">
-          {{ jobApplicationsOption }}
+        <button
+          v-if="!userStore.isFirm"
+          @click="goToJobApplications"
+          class="dropdown-item"
+        >
+          My Applications
         </button>
         <button @click="signOut" class="dropdown-item">Log Out</button>
       </div>
@@ -63,20 +67,8 @@ const accountEmail = computed(() => {
   return storeUser.value.email || "No email available";
 });
 
-const profilePicture = computed(() => {
-  // const photoURL = user.value.photoURL;
-  // return photoURL && photoURL.startsWith("http")
-  //   ? photoURL
-  //   : defaultProfilePicture;
-  return defaultProfilePicture;
-});
-
 const accountOption = computed(() => {
   return userStore.isFirm ? "My Firm" : "My Account";
-});
-
-const jobApplicationsOption = computed(() => {
-  return userStore.isFirm ? "Firm ads" : "My Applications";
 });
 
 const toggleDropdown = () => {

@@ -26,7 +26,7 @@
           <div class="card-header">
             <div class="company-info">
               <img
-                :src="job.firm_profile_pic"
+                :src="job.firm_profile_pic || defaultProfilePicture"
                 alt="Company Logo"
                 class="company-logo"
               />
@@ -79,6 +79,7 @@ import type { JobFirm } from "../models/job";
 import { QueryDocumentSnapshot, Timestamp } from "firebase/firestore";
 import router from "../router";
 import JobFilters from "../components/JobFilters.vue";
+import defaultProfilePicture from "../assets/default_profile_picture.png";
 
 const jobs = ref<JobFirm[]>([]);
 const lastVisible = ref<QueryDocumentSnapshot | null>(null);
@@ -352,8 +353,8 @@ onBeforeUnmount(() => {
 }
 
 .company-logo {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
 }

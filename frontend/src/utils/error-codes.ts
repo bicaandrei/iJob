@@ -25,6 +25,7 @@ enum RETURN_TYPES {
   JOB_EDIT_FAILED,
   APPLICATION_CV_REQUIRED,
   JOB_APPLICATION_FAILED,
+  USER_UPDATE_FAILED,
 }
 
 const getErrorType = (error_type: RETURN_TYPES): string => {
@@ -73,6 +74,8 @@ const getErrorType = (error_type: RETURN_TYPES): string => {
       return "Please upload a valid CV!";
     case RETURN_TYPES.JOB_APPLICATION_FAILED:
       return "An error occured while trying to apply to this job. Please try again!";
+    case RETURN_TYPES.USER_UPDATE_FAILED:
+      return "An error occured while trying to update your profile. Please try again!";
     default:
       return "An error occurred!";
   }

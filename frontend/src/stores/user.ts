@@ -17,6 +17,9 @@ export const useUserStore = defineStore("user", {
       this.isFirm = false;
       this.isAuthenticated = false;
     },
+    editUser(user: any) {
+      this.userInfo = user;
+    },
   },
   persist: true,
 });
