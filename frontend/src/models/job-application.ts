@@ -7,6 +7,7 @@ interface JobApplicationForm {
   experience: number;
   suitability: string;
   cv: File | null;
+  applicant_profile_pic: string | null;
 }
 
 interface JobApplication {
@@ -20,6 +21,8 @@ interface JobApplication {
   suitability: string;
   cv: string | null;
   created_at: Date;
+  status: "Sent" | "Seen";
+  applicant_profile_pic: string | null;
 }
 
 interface UserJobApplication {

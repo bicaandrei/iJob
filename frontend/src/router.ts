@@ -13,6 +13,7 @@ import AddJob from "./pages/AddJob.vue";
 import EditJob from "./pages/EditJob.vue";
 import JobDetails from "./pages/JobDetails.vue";
 import UserJobApplications from "./pages/UserJobApplications.vue";
+import FirmJobApplications from "./pages/FirmJobApplications.vue";
 
 const routes = [
   { path: "/", name: "landing-route", component: Landing },
@@ -64,6 +65,11 @@ const routes = [
         path: "/user/job-applications",
         name: "user-job-applications-route",
         component: UserJobApplications,
+      },
+      {
+        path: "/firm/job-applications/:id",
+        name: "firm-job-applications-route",
+        component: FirmJobApplications,
       },
     ],
   },

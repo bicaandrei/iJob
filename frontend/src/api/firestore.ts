@@ -324,7 +324,8 @@ const setJobApplicationDocument = async (
     if (job_application_form.cv) {
       const downloadUrl = await uploadFileToStorage(
         job_application_form.cv,
-        application_id
+        application_id,
+        import.meta.env.VITE_FIREBASE_STORAGE_JOB_APPLICATIONS_CVS
       );
 
       const job_application: JobApplication = {
@@ -338,6 +339,8 @@ const setJobApplicationDocument = async (
         suitability: job_application_form.suitability,
         cv: downloadUrl,
         created_at: new Date(),
+        status: "Sent",
+        applicant_profile_pic: job_application_form.applicant_profile_pic || "",
       };
 
       const jobApplicationRef = doc(
@@ -355,6 +358,34 @@ const setJobApplicationDocument = async (
   } catch (error: any) {
     console.error("Error saving job application");
     return RETURN_TYPES.JOB_APPLICATION_FAILED;
+  }
+};
+
+const setJobApplicationStatusToSeen = async (application_id: string) => {
+  try {
+    const applicationRef = doc(
+      db,
+      firestoreCollectionsConfig.job_applications_collection,
+      application_id
+    );
+    const applicationSnap = await getDoc(applicationRef);
+    if (applicationSnap.exists()) {
+      const applicationData = applicationSnap.data();
+      if (applicationData) {
+        await setDoc(
+          applicationRef,
+          {
+            ...applicationData,
+            status: "Seen",
+          },
+          { merge: true }
+        );
+      }
+    } else {
+      console.error("Application not found");
+    }
+  } catch (error: any) {
+    console.error("Error updating application status:", error);
   }
 };
 
@@ -376,7 +407,6 @@ const isApplicationSent = async (
     const applicationSnap = await getDocs(applicationQuery);
     if (!applicationSnap.empty) {
       const application = applicationSnap.docs[0].data();
-      console.log(application);
       return { application_date: application.created_at.toDate(), sent: true };
     } else {
       return { application_date: new Date(), sent: false };
@@ -451,7 +481,7 @@ const getUserJobApplicationsById = async (
           job_title: jobTitle,
           firm_name: firmName,
           created_at: data.created_at.toDate(),
-          status: data.status || "Sent",
+          status: data.status,
         } as UserJobApplication;
       })
     );
@@ -463,6 +493,120 @@ const getUserJobApplicationsById = async (
   } catch (error: any) {
     console.error("Error fetching user job applications:", error);
     return { applications: [], lastVisible: null };
+  }
+};
+
+const getJobApplicationsByJobId = async (
+  job_id: string
+): Promise<JobApplication[] | null> => {
+  try {
+    const applicationsRef = collection(
+      db,
+      firestoreCollectionsConfig.job_applications_collection
+    );
+    const applicationsQuery = query(
+      applicationsRef,
+      where("job_id", "==", job_id),
+      orderBy("created_at", "desc")
+    );
+    const querySnapshot = await getDocs(applicationsQuery);
+    const applications: JobApplication[] = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as JobApplication[];
+    return applications;
+  } catch (error: any) {
+    console.error("Error fetching job applications:", error);
+    return null;
+  }
+};
+
+const editUserDocument = async (
+  uid: string,
+  email: string,
+  name: string,
+  profile_pic: File | null
+): Promise<RETURN_TYPES> => {
+  try {
+    if (profile_pic) {
+      const profilePicUrl = await uploadFileToStorage(
+        profile_pic,
+        uid,
+        import.meta.env.VITE_FIREBASE_STORAGE_PROFILE_PICTURES
+      );
+
+      await setDoc(
+        doc(db, firestoreCollectionsConfig.user_collection, uid),
+        {
+          email: email || "",
+          name: name || "Anonymous",
+          profile_pic: profilePicUrl || "",
+        },
+        { merge: true }
+      );
+    } else {
+      await setDoc(
+        doc(db, firestoreCollectionsConfig.user_collection, uid),
+        {
+          email: email || "",
+          name: name || "Anonymous",
+        },
+        {
+          merge: true,
+        }
+      );
+    }
+    return RETURN_TYPES.SUCCESS;
+  } catch (error) {
+    console.error("Error updating user document:", error);
+    return RETURN_TYPES.USER_UPDATE_FAILED;
+  }
+};
+
+const editFirmAccount = async (
+  uid: string,
+  company_name: string,
+  representative_name: string,
+  cui: string,
+  telephone: string,
+  profile_pic: File | null
+): Promise<RETURN_TYPES> => {
+  try {
+    if (profile_pic) {
+      const profilePicUrl = await uploadFileToStorage(
+        profile_pic,
+        uid,
+        import.meta.env.VITE_FIREBASE_STORAGE_PROFILE_PICTURES
+      );
+
+      await setDoc(
+        doc(db, firestoreCollectionsConfig.firm_collection, uid),
+        {
+          company_name,
+          representative_name,
+          cui,
+          telephone,
+          profile_pic: profilePicUrl || "",
+        },
+        { merge: true }
+      );
+    } else {
+      await setDoc(
+        doc(db, firestoreCollectionsConfig.firm_collection, uid),
+        {
+          company_name,
+          representative_name,
+          cui,
+          telephone,
+        },
+        { merge: true }
+      );
+    }
+
+    return RETURN_TYPES.SUCCESS;
+  } catch (error) {
+    console.error("Error updating firm account:", error);
+    return RETURN_TYPES.USER_UPDATE_FAILED;
   }
 };
 
@@ -480,4 +624,8 @@ export {
   setJobApplicationDocument,
   isApplicationSent,
   getUserJobApplicationsById,
+  getJobApplicationsByJobId,
+  setJobApplicationStatusToSeen,
+  editUserDocument,
+  editFirmAccount,
 };

@@ -30,6 +30,12 @@
               <button @click="deleteJob(job.id)" class="delete-btn">
                 Delete
               </button>
+              <button
+                @click="seeJobApplicants(job.id)"
+                class="see-applicants-button"
+              >
+                See applicants
+              </button>
             </div>
           </div>
         </div>
@@ -71,6 +77,10 @@ const deleteJob = async (id: string) => {
   } catch (error: any) {
     displayError(RETURN_TYPES.JOB_DELETE_FAILED);
   }
+};
+
+const seeJobApplicants = (id: string) => {
+  router.push({ name: "firm-job-applications-route", params: { id } });
 };
 
 const reloadJobs = async () => {
@@ -211,5 +221,17 @@ onMounted(async () => {
 
 .delete-btn:hover {
   text-decoration: underline;
+}
+
+.see-applicants-button {
+  background: #2563eb;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background 0.2s;
+  margin-top: 70%;
+}
+.see-applicants-button:hover {
+  background: #1d4ed8;
 }
 </style>

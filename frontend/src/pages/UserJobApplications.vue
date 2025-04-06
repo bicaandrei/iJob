@@ -17,7 +17,7 @@
           {{ new Date(application.created_at).toLocaleDateString() }}
         </p>
         <p class="application-status">
-          <strong>Status:</strong> {{ application.status || "Pending" }}
+          <strong>Status:</strong> {{ application.status }}
         </p>
       </div>
       <div ref="observer" class="observer"></div>

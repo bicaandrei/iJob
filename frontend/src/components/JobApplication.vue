@@ -75,7 +75,12 @@ const { firm_id, job_id } = defineProps<{
 }>();
 
 const userStore = useUserStore();
-const user = userStore.userInfo || { google_uid: "", name: "", email: "" };
+const user = userStore.userInfo || {
+  google_uid: "",
+  name: "",
+  email: "",
+  profile_pic: "",
+};
 const name = ref(user.name);
 const email = ref(user.email);
 const experience = ref<number | null>(null);
@@ -104,6 +109,7 @@ const sendApplication = async () => {
     experience: experience.value || 0,
     cv: cv.value,
     suitability: suitability.value,
+    applicant_profile_pic: user.profile_pic,
   };
 
   const return_type: RETURN_TYPES = await setJobApplicationDocument(

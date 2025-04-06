@@ -7,12 +7,13 @@ import { storage } from "./firebase";
 
 const uploadFileToStorage = async (
   file: File,
-  application_id: string
+  owner_id: string,
+  folder: string
 ): Promise<string | null> => {
   try {
     const fileRef = storageRef(
       storage,
-      `job_applications/${application_id}_${Date.now()}.pdf`
+      `${folder}/${owner_id}_${Date.now()}.pdf`
     );
     await uploadBytes(fileRef, file);
     const downloadUrl = await getDownloadURL(fileRef);
