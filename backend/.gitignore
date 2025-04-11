@@ -1,5 +1,6 @@
 .venv_prod/
 .venv_dev/
-.env.dev
-.env.prod
+.env
 requirements.prod.txt
+firebase-key.json
+skills/
