@@ -1,6 +1,6 @@
 import spacy
-import re
 import pdfplumber
+from app.services.firestore_service import get_programming_languages, get_frameworks, get_tools, get_certifications
 
 def extract_text_from_pdf(file):
     with pdfplumber.open(file) as pdf:
@@ -9,22 +9,51 @@ def extract_text_from_pdf(file):
             text += page.extract_text()
     return text
 
+from spacy.matcher import PhraseMatcher
+import spacy
+
 def extract_skills(text):
+    """
+    Extract skills from the CV text and return them categorized in a dictionary.
+    """
+    programming_languages = get_programming_languages()
+    frameworks = get_frameworks()
+    tools = get_tools()
+    certifications = get_certifications()
+
     nlp = spacy.load("en_core_web_sm")
-    SKILL_LIST = ['python', 'java', 'docker', 'kubernetes', 'flask', 'react', 'aws', 'git', 'typescript']
-    doc = nlp(text.lower())
-    extracted = set()
-    for token in doc:
-        if token.text in SKILL_LIST:
-            extracted.add(token.text)
-    return list(extracted)
+    doc = nlp(text.lower())  
 
-def extract_experience(text):
-    pattern = r"(experience|work experience|work history|employment)[\s\S]{0,5000}"
-    match = re.search(pattern, text, re.IGNORECASE)
-    return match.group() if match else ""
+    matcher = PhraseMatcher(nlp.vocab, attr="LOWER")
 
-def extract_projects(text):
-    pattern = r"(projects|personal projects)[\s\S]{0,3000}"
-    match = re.search(pattern, text, re.IGNORECASE)
-    return match.group() if match else ""
+    matcher.add("PROGRAMMING_LANGUAGES", [nlp(pl) for pl in programming_languages])
+    matcher.add("FRAMEWORKS", [nlp(fw) for fw in frameworks])
+    matcher.add("TOOLS", [nlp(tl) for tl in tools])
+    matcher.add("CERTIFICATIONS", [nlp(cert) for cert in certifications])
+
+    matches = matcher(doc)
+
+    extracted_programming_languages = set()
+    extracted_frameworks = set()
+    extracted_tools = set()
+    extracted_certifications = set()
+
+    for match_id, start, end in matches:
+        span = doc[start:end]
+        label = nlp.vocab.strings[match_id]
+
+        if label == "PROGRAMMING_LANGUAGES":
+            extracted_programming_languages.add(span.text)
+        elif label == "FRAMEWORKS":
+            extracted_frameworks.add(span.text)
+        elif label == "TOOLS":
+            extracted_tools.add(span.text)
+        elif label == "CERTIFICATIONS":
+            extracted_certifications.add(span.text)
+
+    return {
+        "programming_languages": list(extracted_programming_languages),
+        "frameworks": list(extracted_frameworks),
+        "tools": list(extracted_tools),
+        "certifications": list(extracted_certifications),
+    }
