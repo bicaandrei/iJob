@@ -15,6 +15,5 @@ def authenticate(func):
         return func(*args, **kwargs)
     return wrapper
 
-
 skills_bp = Blueprint("skills", __name__)
 skills_bp.route("/upload-skills", methods=["POST"])(authenticate(upload_skills_endpoint))
