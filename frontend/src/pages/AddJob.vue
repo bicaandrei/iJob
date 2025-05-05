@@ -7,18 +7,18 @@
       <input
         v-model="job.title"
         type="text"
-        placeholder="Job Title"
+        placeholder="Job Title*"
         class="input"
       />
       <textarea
         v-model="job.description"
         type="text"
-        placeholder="Description"
+        placeholder="Description*"
         class="textarea"
       ></textarea>
 
       <select v-model="job.position" class="input">
-        <option disabled value="">Select position</option>
+        <option disabled value="">Select position*</option>
         <option>Intern</option>
         <option>Junior</option>
         <option>Middle</option>
@@ -27,40 +27,122 @@
       <input
         v-model="job.requiredExperience"
         type="text"
-        placeholder="Required Experience (e.g., 2-3 years)"
+        placeholder="Required Experience (e.g., 2-3 years)*"
         class="input"
       />
 
       <input
         v-model="job.location"
         type="text"
-        placeholder="Location"
+        placeholder="Location*"
         class="input"
       />
 
-      <div
-        v-for="(_, index) in job.techStack"
-        :key="index"
-        class="tech-stack-container"
-      >
+      <div class="skill-search-wrapper">
         <input
-          v-model="job.techStack[index]"
+          v-model="searchedProgrammingLanguage"
+          @input="debouncedSearch('programming_language')"
           type="text"
-          placeholder="Enter technology"
-          class="tech-input"
+          placeholder="Search required programming languages"
+          class="input"
         />
-        <button
-          type="button"
-          class="remove-tech-btn"
-          @click="removeTech(index)"
-        >
-          Remove
-        </button>
+        <ul v-if="programmingLanguageResults.length" class="search-results">
+          <li
+            v-for="(result, index) in programmingLanguageResults"
+            :key="index"
+            @click="addSkill(result, 'programming_languages')"
+          >
+            {{ result }}
+          </li>
+        </ul>
       </div>
 
-      <button type="button" class="add-tech-btn" @click="addTechInput">
-        Add Technology
-      </button>
+      <ul v-if="job.programming_languages.length" class="selected-skills-list">
+        <li v-for="(language, index) in job.programming_languages" :key="index">
+          {{ language }}
+          <button @click="removeSkill(index, 'programming_languages')">
+            Remove
+          </button>
+        </li>
+      </ul>
+
+      <div class="skill-search-wrapper">
+        <input
+          v-model="searchedFramework"
+          @input="debouncedSearch('framework')"
+          type="text"
+          placeholder="Search required frameworks"
+          class="input"
+        />
+        <ul v-if="frameworkResults.length" class="search-results">
+          <li
+            v-for="(result, index) in frameworkResults"
+            :key="index"
+            @click="addSkill(result, 'frameworks')"
+          >
+            {{ result }}
+          </li>
+        </ul>
+      </div>
+
+      <ul v-if="job.frameworks.length" class="selected-skills-list">
+        <li v-for="(framework, index) in job.frameworks" :key="index">
+          {{ framework }}
+          <button @click="removeSkill(index, 'frameworks')">Remove</button>
+        </li>
+      </ul>
+
+      <div class="skill-search-wrapper">
+        <input
+          v-model="searchedCertification"
+          @input="debouncedSearch('certification')"
+          type="text"
+          placeholder="Search required certifications"
+          class="input"
+        />
+        <ul v-if="certificationResults.length" class="search-results">
+          <li
+            v-for="(result, index) in certificationResults"
+            :key="index"
+            @click="addSkill(result, 'certifications')"
+          >
+            {{ result }}
+          </li>
+        </ul>
+      </div>
+
+      <ul v-if="job.certifications.length" class="selected-skills-list">
+        <li v-for="(certification, index) in job.certifications" :key="index">
+          {{ certification }}
+          <button @click="removeSkill(index, 'certifications')">Remove</button>
+        </li>
+      </ul>
+
+      <div class="skill-search-wrapper">
+        <input
+          v-model="searchedTool"
+          @input="debouncedSearch('tool')"
+          type="text"
+          placeholder="Search required tools"
+          class="input"
+        />
+        <ul v-if="toolResults.length" class="search-results">
+          <li
+            v-for="(result, index) in toolResults"
+            :key="index"
+            @click="addSkill(result, 'tools')"
+          >
+            {{ result }}
+          </li>
+        </ul>
+      </div>
+
+      <ul v-if="job.tools.length" class="selected-skills-list">
+        <li v-for="(tool, index) in job.tools" :key="index">
+          {{ tool }}
+          <button @click="removeSkill(index, 'tools')">Remove</button>
+        </li>
+      </ul>
 
       <label for="remoteCheckbox" class="remote-checkbox-container">
         Includes remote work:
@@ -80,13 +162,14 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import type { JobForm } from "../models/job";
+import { type JobForm } from "../models/job";
 import { validateRequiredExperience } from "../utils/validation-rules";
 import { RETURN_TYPES, getErrorType } from "../utils/error-codes";
 import Snackbar from "../components/Snackbar.vue";
-import { setJobAdDocument } from "../api/firestore";
+import { searchSkills, setJobAdDocument } from "../api/firestore";
 import { useAuth } from "../api/authentication";
 import { useJobStore } from "../stores/job";
+import { debounce } from "../utils/debounce";
 
 const router = useRouter();
 const snackbarRef = ref<InstanceType<typeof Snackbar> | null>(null);
@@ -100,15 +183,87 @@ const job = ref<JobForm>({
   requiredExperience: "",
   location: "",
   is_remote: false,
-  techStack: [""],
+  programming_languages: [],
+  frameworks: [],
+  certifications: [],
+  tools: [],
 });
 
-const addTechInput = () => {
-  job.value.techStack.push("");
+const searchedProgrammingLanguage = ref("");
+const searchedFramework = ref("");
+const searchedCertification = ref("");
+const searchedTool = ref("");
+const programmingLanguageResults = ref<string[]>([]);
+const frameworkResults = ref<string[]>([]);
+const certificationResults = ref<string[]>([]);
+const toolResults = ref<string[]>([]);
+
+const debouncedSearch = debounce(async (category: string) => {
+  let query = "";
+  if (category === "programming_language") {
+    query = searchedProgrammingLanguage.value;
+    if (query.trim()) {
+      programmingLanguageResults.value = await searchSkills(query, category);
+    } else {
+      programmingLanguageResults.value = [];
+    }
+  }
+  if (category === "framework") {
+    query = searchedFramework.value;
+    if (query.trim()) {
+      frameworkResults.value = await searchSkills(query, category);
+    } else {
+      frameworkResults.value = [];
+    }
+  }
+  if (category === "certification") {
+    query = searchedCertification.value;
+    if (query.trim()) {
+      certificationResults.value = await searchSkills(query, category);
+    } else {
+      certificationResults.value = [];
+    }
+  }
+  if (category === "tool") {
+    query = searchedTool.value;
+    if (query.trim()) {
+      toolResults.value = await searchSkills(query, category);
+    } else {
+      toolResults.value = [];
+    }
+  }
+}, 300);
+
+const addSkill = (
+  skill: string,
+  category: "programming_languages" | "frameworks" | "certifications" | "tools"
+) => {
+  if (!job.value[category].includes(skill)) {
+    job.value[category].push(skill);
+  }
+  if (category == "programming_languages") {
+    searchedProgrammingLanguage.value = "";
+    programmingLanguageResults.value = [];
+  }
+  if (category == "frameworks") {
+    searchedFramework.value = "";
+    frameworkResults.value = [];
+  }
+  if (category == "certifications") {
+    searchedCertification.value = "";
+    certificationResults.value = [];
+  }
+  if (category == "tools") {
+    searchedTool.value = "";
+    toolResults.value = [];
+  }
 };
 
-const removeTech = (index: number) => {
-  job.value.techStack.splice(index, 1);
+const removeSkill = (
+  index: number,
+  category: "programming_languages" | "frameworks" | "certifications" | "tools"
+) => {
+  job.value[category].splice(index, 1);
 };
 
 const submitJob = async () => {
@@ -146,15 +301,6 @@ const validateForm = (): Boolean => {
     return false;
   }
 
-  const hasEmptyTech = job.value.techStack.some(
-    (technology) => technology.trim() === ""
-  );
-
-  if (hasEmptyTech) {
-    displayError(RETURN_TYPES.EMPTY_TECH_STACK_INPUTS);
-    return false;
-  }
-
   return true;
 };
 
@@ -164,6 +310,76 @@ const displayError = (error_type: RETURN_TYPES) => {
 </script>
 
 <style scoped>
+.skill-search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.skill-search-wrapper .input {
+  width: 95%;
+  padding: 0.75rem 0.65rem;
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  max-height: 150px;
+  overflow-y: auto;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-results li {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.search-results li:hover {
+  background-color: #f0f0f0;
+}
+
+.selected-skills-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.75rem;
+}
+
+.selected-skills-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.selected-skills-list li:last-child {
+  border-bottom: none;
+}
+
+.selected-skills-list li button {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.selected-skills-list li button:hover {
+  background: #b91c1c;
+}
+
 .form-container {
   max-width: 400px;
   margin: 80px auto;

@@ -47,6 +47,22 @@
             <span class="label">Applied on: </span>
             <span class="value">{{ formatDate(application.created_at) }}</span>
           </p>
+          <p class="application-analysis-score">
+            <span class="label">CV Analysis Score: </span>
+            <span
+              class="value"
+              :class="{
+                'score-high':
+                  application.analysis_score != null &&
+                  application.analysis_score > 50,
+                'score-low':
+                  application.analysis_score != null &&
+                  application.analysis_score <= 50,
+              }"
+            >
+              {{ application.analysis_score || "Not available" }}
+            </span>
+          </p>
         </div>
         <button
           v-if="application.cv"
@@ -105,11 +121,13 @@ const downloadCV = async (application_id: string, cvUrl: string) => {
 const filters = ref({
   experience: "",
   dateSubmitted: "",
+  score: "",
 });
 
 const applyFilters = (selectedFilters: {
   experience: string;
   dateSubmitted: string;
+  score: string;
 }) => {
   filters.value = selectedFilters;
 };
@@ -118,6 +136,7 @@ const removeFilters = () => {
   filters.value = {
     experience: "",
     dateSubmitted: "",
+    score: "",
   };
 };
 
@@ -146,6 +165,18 @@ const filteredApplications = computed(() => {
         return false;
       if (filters.value.dateSubmitted === "3months" && diffInDays > 90)
         return false;
+    }
+
+    if (
+      filters.value.score &&
+      application.analysis_score &&
+      application.analysis_score < parseInt(filters.value.score)
+    ) {
+      return false;
+    }
+
+    if (filters.value.score && !application.analysis_score) {
+      return false;
     }
 
     return true;
@@ -254,5 +285,14 @@ onMounted(() => {
   border-radius: 50%; /* Make the image round */
   object-fit: cover; /* Ensure the image fits within the circle */
   border: 2px solid #ccc; /* Optional: Add a border around the image */
+}
+.score-high {
+  color: green;
+  font-weight: bold;
+}
+
+.score-low {
+  color: red;
+  font-weight: bold;
 }
 </style>

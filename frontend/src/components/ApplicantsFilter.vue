@@ -1,7 +1,6 @@
 <template>
   <h2 class="filter-applicants-title">Filter Applicants</h2>
   <div class="filters-container">
-    <!-- Experience Filter -->
     <div class="filter-group">
       <h3>Experience</h3>
       <input
@@ -11,7 +10,6 @@
       />
     </div>
 
-    <!-- Date Submitted Filter -->
     <div class="filter-group">
       <h3>Date Submitted</h3>
       <div v-for="(label, key) in dateOptions" :key="key" class="radio-group">
@@ -24,6 +22,14 @@
         <label :for="key">{{ label }}</label>
       </div>
     </div>
+  </div>
+  <div class="filter-score-container">
+    <h3>CV Analysis Score</h3>
+    <input
+      type="text"
+      v-model="selectedFilters.score"
+      placeholder="Enter min score (e.g., 70)"
+    />
   </div>
   <div class="button-container">
     <button class="remove-filters-button" @click="removeFilters">
@@ -39,6 +45,7 @@ const emit = defineEmits(["filter-change", "remove-filters"]);
 
 const selectedFilters = ref({
   experience: "",
+  score: "",
   dateSubmitted: "",
 });
 
@@ -53,6 +60,7 @@ const removeFilters = () => {
   selectedFilters.value = {
     experience: "",
     dateSubmitted: "",
+    score: "",
   };
   emit("remove-filters");
 };
@@ -125,5 +133,18 @@ input[type="text"] {
 
 .remove-filters-button:hover {
   background-color: #0056b3;
+}
+
+.filter-score-container {
+  margin: 1rem auto;
+  text-align: center;
+}
+
+.filter-score-container input[type="text"] {
+  width: 45%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
 }
 </style>

@@ -61,7 +61,7 @@ const getErrorType = (error_type: RETURN_TYPES): string => {
     case RETURN_TYPES.NO_TECHNOLOGIES_ADDED:
       return "No technologies chosen, tech stack will be set to: Any.";
     case RETURN_TYPES.JOB_INFORMATION_REQUIRED:
-      return "Please complete every section!";
+      return "Please complete every required section!";
     case RETURN_TYPES.EMPTY_TECH_STACK_INPUTS:
       return "Please complete all the technology sections that are opened!";
     case RETURN_TYPES.JOB_ADD_FAILED:

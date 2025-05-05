@@ -48,8 +48,8 @@
                 <span class="value">{{ job.location }}</span>
               </p>
               <p class="tech-stack">
-                <span class="label">Tech Stack: </span>
-                <span class="value">{{ job.techStack.join(", ") }}</span>
+                <span class="label">Required skills: </span>
+                <span class="value">{{ getRequiredSkills(job) }}</span>
               </p>
               <p class="job-is-remote">
                 <span class="label">Includes remote work: </span>
@@ -149,6 +149,16 @@ const timeSince = (
   }
 
   return "Just now";
+};
+
+const getRequiredSkills = (job: JobFirm): string => {
+  const skills = [
+    ...(job.programming_languages || []),
+    ...(job.frameworks || []),
+    ...(job.certifications || []),
+    ...(job.tools || []),
+  ];
+  return skills.length > 0 ? skills.join(", ") : "None";
 };
 
 const filteredJobs = computed(() => {

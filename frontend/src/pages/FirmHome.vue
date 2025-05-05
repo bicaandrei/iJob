@@ -17,12 +17,30 @@
             <div>
               <h2 class="job-title">{{ job.title }} ({{ job.position }})</h2>
               <p class="job-description">{{ job.description }}</p>
-              <p class="tech-stack">
-                Tech Stack: <span>{{ job.techStack.join(", ") }}</span>
+              <p v-if="job.programming_languages.length" class="tech-stack">
+                Required programming languages:
+                <span class="skills">{{
+                  job.programming_languages.join(", ")
+                }}</span>
               </p>
-              <p class="job-location">Location: {{ job.location }}</p>
+              <p v-if="job.frameworks.length" class="tech-stack">
+                Required frameworks:
+                <span class="skills">{{ job.frameworks.join(", ") }}</span>
+              </p>
+              <p v-if="job.certifications.length" class="tech-stack">
+                Required certifications:
+                <span class="skills">{{ job.certifications.join(", ") }}</span>
+              </p>
+              <p v-if="job.tools.length" class="tech-stack">
+                Required tools:
+                <span class="skills">{{ job.tools.join(", ") }}</span>
+              </p>
+              <p class="job-location">
+                Location: <span class="skills">{{ job.location }}</span>
+              </p>
               <p class="job-is-remote">
-                Includes remote work: {{ job.is_remote }}
+                Includes remote work:
+                <span class="skills">{{ job.is_remote }}</span>
               </p>
             </div>
             <div class="card-actions">
@@ -185,6 +203,12 @@ onMounted(async () => {
   margin-top: 0.25rem;
 }
 
+.skills {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
 .job-is-remote,
 .job-location,
 .tech-stack {
@@ -229,7 +253,7 @@ onMounted(async () => {
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
   transition: background 0.2s;
-  margin-top: 70%;
+  margin-top: 150%;
 }
 .see-applicants-button:hover {
   background: #1d4ed8;

@@ -18,6 +18,9 @@ const jobStore = useJobStore();
 onMounted(() => {
   onAuthStateChanged(auth, async (currentUser) => {
     if (currentUser) {
+      const idToken = await currentUser.getIdToken(true);
+      console.log(idToken);
+
       const doc = await getDocumentByUID(currentUser.uid);
       if (doc !== null) {
         userStore.setUser(doc.data, doc.is_firm);
