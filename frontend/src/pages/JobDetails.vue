@@ -12,9 +12,23 @@
     <p class="job-experience">
       <strong>Required Experience:</strong> {{ job?.requiredExperience }}
     </p>
-    <p class="job-tech-stack">
-      <strong>Tech Stack:</strong> {{ job?.techStack.join(", ") }}
+    <p v-if="job?.programming_languages.length" class="job-tech-stack">
+      <strong>Required programming languages:</strong>
+      {{ job.programming_languages.join(", ") }}
     </p>
+    <p v-if="job?.frameworks.length" class="job-tech-stack">
+      <strong>Required frameworks:</strong>
+      {{ job.frameworks.join(", ") }}
+    </p>
+    <p v-if="job?.certifications.length" class="job-tech-stack">
+      <strong>Required certifications:</strong>
+      {{ job.certifications.join(", ") }}
+    </p>
+    <p v-if="job?.tools.length" class="job-tech-stack">
+      <strong>Required tools:</strong>
+      {{ job.tools.join(", ") }}
+    </p>
+
     <p class="job-description">
       <strong>Includes remote work:</strong> {{ job?.is_remote }}
     </p>
@@ -42,6 +56,12 @@
     v-if="isApplicationVisibile"
     :firm_id="job?.firm_id"
     :job_id="job?.id"
+    :job_programming_languages="job?.programming_languages"
+    :job_certifications="job?.certifications"
+    :job_frameworks="job?.frameworks"
+    :job_tools="job?.tools"
+    :job_experience="job?.requiredExperience"
+    :job_title="job?.title"
     @application-submitted="handleApplicationSubmitted"
   />
 </template>
@@ -152,6 +172,7 @@ onMounted(async () => {
   margin-bottom: 2rem;
 }
 
+.job-tech-stack,
 .job-firm,
 .job-position,
 .job-description,
@@ -162,6 +183,7 @@ onMounted(async () => {
   color: #555;
 }
 
+.job-tech-stack,
 .job-firm,
 .job-position strong,
 .job-description strong,

@@ -1,3 +1,10 @@
+enum SkillCategory {
+  PROGRAMMING_LANGUAGE,
+  CERTIFICATION,
+  FRAMEWORK,
+  TOOL,
+}
+
 interface Job {
   id: string;
   firm_id: string;
@@ -7,7 +14,10 @@ interface Job {
   description: string;
   location: string;
   is_remote: boolean;
-  techStack: string[];
+  programming_languages: string[];
+  frameworks: string[];
+  certifications: string[];
+  tools: string[];
   created_at: Date;
 }
 
@@ -18,7 +28,10 @@ interface JobForm {
   location: string;
   is_remote: boolean;
   requiredExperience: string;
-  techStack: string[];
+  programming_languages: string[];
+  frameworks: string[];
+  certifications: string[];
+  tools: string[];
 }
 
 interface JobFirm {
@@ -30,7 +43,10 @@ interface JobFirm {
   description: string;
   location: string;
   is_remote: boolean;
-  techStack: string[];
+  programming_languages: string[];
+  frameworks: string[];
+  certifications: string[];
+  tools: string[];
   created_at: Date;
   company_name: string;
   email: string;
@@ -38,4 +54,4 @@ interface JobFirm {
   telephone: string;
 }
 
-export type { Job, JobForm, JobFirm };
+export type { Job, JobForm, JobFirm, SkillCategory };

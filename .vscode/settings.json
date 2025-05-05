@@ -1,3 +1,9 @@
 {
-  "python.pythonPath": "/path/to/your/venv_dev/bin/python"
+  "python.pythonPath": "/path/to/your/venv_dev/bin/python",
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false
+  }
 }

@@ -2,7 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import os
 
-FIREBASE_KEY_PATH = os.getenv("FIREBASE_KEY_PATH", "firebase-key.json")
+FIREBASE_KEY_PATH = os.getenv("FLASK_FIREBASE_KEY_PATH", "firebase-key.json")
 
 class FirestoreClient:
 

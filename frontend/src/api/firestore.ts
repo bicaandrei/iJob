@@ -103,10 +103,13 @@ const setJobAdDocument = async (
       ...job_form,
     };
 
-    const techStack = [...job.techStack];
-    if (techStack.length === 0) {
-      techStack.push("Any");
-    }
+    const programming_languages = [...job.programming_languages];
+
+    const certifications = [...job.certifications];
+
+    const frameworks = [...job.frameworks];
+
+    const tools = [...job.tools];
 
     const jobRef = doc(
       db,
@@ -114,7 +117,13 @@ const setJobAdDocument = async (
       job.id
     );
 
-    await setDoc(jobRef, { ...job, techStack });
+    await setDoc(jobRef, {
+      ...job,
+      programming_languages,
+      certifications,
+      frameworks,
+      tools,
+    });
 
     return RETURN_TYPES.SUCCESS;
   } catch (error: any) {
@@ -142,18 +151,31 @@ const getJobsOfFirm = async (firm_id: string): Promise<Job[] | null> => {
 
 const deleteJobById = async (job_id: string) => {
   try {
+    const jobApplicationsQuery = query(
+      collection(db, firestoreCollectionsConfig.job_applications_collection),
+      where("job_id", "==", job_id)
+    );
+    const applicationsSnapshot = await getDocs(jobApplicationsQuery);
+
+    const deleteApplicationsPromises = applicationsSnapshot.docs.map((doc) =>
+      deleteDoc(doc.ref)
+    );
+    await Promise.all(deleteApplicationsPromises);
+
     const jobAdsQuery = query(
       collection(db, firestoreCollectionsConfig.job_ads_collection),
       where("id", "==", job_id)
     );
     const querySnapshot = await getDocs(jobAdsQuery);
 
-    querySnapshot.docs.forEach(async (doc) => {
-      const jobRef = doc.ref;
-      await deleteDoc(jobRef);
-    });
+    const deleteJobPromises = querySnapshot.docs.map((doc) =>
+      deleteDoc(doc.ref)
+    );
+    await Promise.all(deleteJobPromises);
+
+    console.log(`Job and associated applications deleted successfully.`);
   } catch (error: any) {
-    console.error("Error deleting job!");
+    console.error("Error deleting job and its applications:", error);
     throw error;
   }
 };
@@ -170,7 +192,14 @@ const getJobById = async (uid: string): Promise<JobForm | null> => {
         position: data.position || "",
         requiredExperience: data.requiredExperience || "",
         location: data.location || "",
-        techStack: Array.isArray(data.techStack) ? data.techStack : [""],
+        programming_languages: Array.isArray(data.programming_languages)
+          ? data.programming_languages
+          : [""],
+        certifications: Array.isArray(data.certifications)
+          ? data.certifications
+          : [""],
+        frameworks: Array.isArray(data.frameworks) ? data.frameworks : [""],
+        tools: Array.isArray(data.tools) ? data.tools : [""],
         is_remote: data.is_remote,
       };
       return jobForm;
@@ -233,12 +262,25 @@ const editJobDocument = async (
       job_id
     );
 
-    const techStack = [...updatedJob.techStack];
-    if (techStack.length === 0) {
-      techStack.push("Any");
-    }
+    const programming_languages = [...updatedJob.programming_languages];
 
-    await setDoc(jobRef, { ...updatedJob, techStack }, { merge: true });
+    const certifications = [...updatedJob.certifications];
+
+    const frameworks = [...updatedJob.frameworks];
+
+    const tools = [...updatedJob.tools];
+
+    await setDoc(
+      jobRef,
+      {
+        ...updatedJob,
+        programming_languages,
+        certifications,
+        frameworks,
+        tools,
+      },
+      { merge: true }
+    );
 
     return RETURN_TYPES.SUCCESS;
   } catch (error: any) {
@@ -341,6 +383,7 @@ const setJobApplicationDocument = async (
         created_at: new Date(),
         status: "Sent",
         applicant_profile_pic: job_application_form.applicant_profile_pic || "",
+        analysis_score: job_application_form.analysis_score || null,
       };
 
       const jobApplicationRef = doc(
@@ -610,6 +653,23 @@ const editFirmAccount = async (
   }
 };
 
+const searchSkills = async (
+  searchTerm: string,
+  category: string
+): Promise<string[]> => {
+  const skillsRef = collection(db, "skills");
+
+  const q = query(
+    skillsRef,
+    where("category", "==", category),
+    where("name", ">=", searchTerm),
+    where("name", "<=", searchTerm + "\uf8ff")
+  );
+
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => doc.data().name);
+};
+
 export {
   firestoreCollectionsConfig,
   getDocumentByUID,
@@ -628,4 +688,5 @@ export {
   setJobApplicationStatusToSeen,
   editUserDocument,
   editFirmAccount,
+  searchSkills,
 };
