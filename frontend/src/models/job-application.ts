@@ -4,6 +4,7 @@ interface JobApplicationForm {
   job_id: string | undefined;
   name: string;
   email: string;
+  telephone: string;
   experience: number;
   suitability: string;
   cv: File | null;
@@ -18,6 +19,7 @@ interface JobApplication {
   job_id: string | undefined;
   name: string;
   email: string;
+  telephone: string;
   experience: number;
   suitability: string;
   cv: string | null;

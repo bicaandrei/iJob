@@ -7,6 +7,12 @@
       <input v-model="username" type="text" placeholder="Name" class="input" />
       <input v-model="email" type="email" placeholder="Email" class="input" />
       <input
+        v-model="telephone"
+        type="tel"
+        placeholder="Telephone"
+        class="input"
+      />
+      <input
         v-model="password"
         type="password"
         placeholder="Password"
@@ -40,12 +46,17 @@ import { useAuth } from "../api/authentication";
 import router from "../router";
 import "../assets/styles.css";
 import { RETURN_TYPES, getErrorType } from "../utils/error-codes";
-import { validateEmail, validateName } from "../utils/validation-rules";
+import {
+  validateEmail,
+  validateName,
+  validateTelephone,
+} from "../utils/validation-rules";
 import { setUserDocument } from "../api/firestore";
 import Snackbar from "../components/Snackbar.vue";
 
 const username = ref("");
 const email = ref("");
+const telephone = ref("");
 const password = ref("");
 const confirmPassword = ref("");
 const { user, register_user, loginWithGoogle } = useAuth();
@@ -56,6 +67,7 @@ const handleRegister = async () => {
     const return_type: RETURN_TYPES = await register_user(
       username.value,
       email.value,
+      telephone.value,
       password.value
     );
     if (return_type === RETURN_TYPES.SUCCESS) {
@@ -94,6 +106,7 @@ const validateUserForm = (): Boolean => {
   if (
     !username.value ||
     !email.value ||
+    !telephone.value ||
     !password.value ||
     !confirmPassword.value
   ) {
@@ -108,6 +121,11 @@ const validateUserForm = (): Boolean => {
 
   if (validateEmail(email.value) === false) {
     displayError(RETURN_TYPES.INVALID_EMAIL_FORMAT);
+    return false;
+  }
+
+  if (validateTelephone(telephone.value) === false) {
+    displayError(RETURN_TYPES.INVALID_TELEPHONE_FORMAT);
     return false;
   }
 

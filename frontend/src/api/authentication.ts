@@ -23,6 +23,7 @@ onAuthStateChanged(auth, (currentUser) => {
 const register_user = async (
   username: string,
   email: string,
+  telephone: string,
   password: string
 ): Promise<RETURN_TYPES> => {
   try {
@@ -42,6 +43,7 @@ const register_user = async (
       {
         google_uid: userCredential.user.uid,
         email: userCredential.user.email || "",
+        telephone: telephone,
         name: username,
         profile_pic: userCredential.user.photoURL || "",
         is_firm: false,
