@@ -31,10 +31,7 @@
 
           <!-- Applicant Details -->
           <h2 class="applicant-name">{{ application.name }}</h2>
-          <p class="applicant-email">
-            <span class="label">Email: </span>
-            <span class="value">{{ application.email }}</span>
-          </p>
+
           <p class="applicant-experience">
             <span class="label">Experience: </span>
             <span class="value">{{ application.experience }} years</span>
@@ -71,7 +68,28 @@
         >
           View CV
         </button>
+        <button
+          class="view-contact-details-btn"
+          @click="
+            showContactDetails(
+              application.name,
+              application.email,
+              application.telephone
+            )
+          "
+        >
+          View contact details
+        </button>
       </div>
+    </div>
+  </div>
+
+  <div v-if="showAnalysisModal" class="modal-overlay">
+    <div class="modal">
+      <h2>{{ applicantName }}'s Contact Information</h2>
+      <p>Email: {{ applicantEmail }}</p>
+      <p>Telephone: {{ applicantTelephone }}</p>
+      <button class="modal-close-btn" @click="closeModal">Close</button>
     </div>
   </div>
 </template>
@@ -93,6 +111,10 @@ const jobId = route.params.id as string;
 
 const applications = ref<JobApplication[] | null>([]);
 const isLoading = ref(true);
+const showAnalysisModal = ref(false);
+const applicantName = ref("");
+const applicantEmail = ref("");
+const applicantTelephone = ref("");
 
 const fetchApplications = async () => {
   try {
@@ -116,6 +138,17 @@ const formatDate = (date: Date | Timestamp): string => {
 const downloadCV = async (application_id: string, cvUrl: string) => {
   await setJobApplicationStatusToSeen(application_id);
   window.open(cvUrl, "_blank");
+};
+
+const showContactDetails = (name: string, email: string, telephone: string) => {
+  applicantName.value = name;
+  applicantEmail.value = email;
+  applicantTelephone.value = telephone;
+  showAnalysisModal.value = true;
+};
+
+const closeModal = () => {
+  showAnalysisModal.value = false;
 };
 
 const filters = ref({
@@ -273,6 +306,21 @@ onMounted(() => {
   background-color: #0056b3;
 }
 
+.view-contact-details-btn {
+  margin: 1rem 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.view-contact-details-btn:hover {
+  background-color: #298d3f;
+}
+
 .applicant-profile-pic-container {
   display: flex;
   justify-content: center;
@@ -282,9 +330,9 @@ onMounted(() => {
 .applicant-profile-pic {
   width: 80px;
   height: 80px;
-  border-radius: 50%; /* Make the image round */
-  object-fit: cover; /* Ensure the image fits within the circle */
-  border: 2px solid #ccc; /* Optional: Add a border around the image */
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ccc;
 }
 .score-high {
   color: green;
@@ -294,5 +342,67 @@ onMounted(() => {
 .score-low {
   color: red;
   font-weight: bold;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+}
+
+.modal h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.modal p {
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-btn {
+  background-color: #007bff;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-right: 1rem;
+}
+
+.modal-btn:hover {
+  background-color: #0056b3;
+}
+
+.modal-close-btn {
+  background-color: #ccc;
+  color: #333;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.modal-close-btn:hover {
+  background-color: #aaa;
 }
 </style>

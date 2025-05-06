@@ -67,6 +67,11 @@ import { editFirmAccount, editUserDocument } from "../api/firestore";
 import { RETURN_TYPES } from "../utils/error-codes";
 import Snackbar from "../components/Snackbar.vue";
 import { getErrorType } from "../utils/error-codes";
+import {
+  validateCUI,
+  validateName,
+  validateTelephone,
+} from "../utils/validation-rules";
 
 const snackbarRef = ref<InstanceType<typeof Snackbar> | null>(null);
 const userStore = useUserStore();
@@ -93,6 +98,7 @@ const firmFields = reactive({
 const userFields = reactive({
   name: user.name || "",
   email: user.email || "",
+  telephone: user.telephone || "",
 });
 
 const profilePicFile = reactive<{ file: File | null }>({ file: null });
@@ -106,9 +112,14 @@ const profilePic = computed(() => {
 
 const saveChanges = async () => {
   if (!userStore.isFirm) {
+    if (!validateUserForm()) {
+      return;
+    }
+
     const return_type = await editUserDocument(
       user.google_uid,
       userFields.email,
+      userFields.telephone.trim(),
       userFields.name.trim(),
       profilePicFile.file
     );
@@ -129,6 +140,10 @@ const saveChanges = async () => {
       displayError(return_type);
     }
   } else {
+    if (!validateFirmForm()) {
+      return;
+    }
+
     const return_type = await editFirmAccount(
       user.google_uid,
       firmFields.company_name.trim(),
@@ -158,6 +173,58 @@ const saveChanges = async () => {
   }
 };
 
+const validateUserForm = (): Boolean => {
+  if (!userFields.name || !userFields.email || !userFields.telephone) {
+    displayError(RETURN_TYPES.CREDENTIALS_REQUIRED);
+    return false;
+  }
+
+  if (validateName(userFields.name) === false) {
+    displayError(RETURN_TYPES.INVALID_USER_NAME_FORMAT);
+    return false;
+  }
+
+  if (validateTelephone(userFields.telephone) === false) {
+    displayError(RETURN_TYPES.INVALID_TELEPHONE_FORMAT);
+    return false;
+  }
+
+  return true;
+};
+
+const validateFirmForm = (): Boolean => {
+  if (
+    !firmFields.company_name ||
+    !firmFields.representative_name ||
+    !firmFields.cui ||
+    !firmFields.telephone
+  ) {
+    displayError(RETURN_TYPES.CREDENTIALS_REQUIRED);
+    return false;
+  }
+
+  if (validateName(firmFields.company_name) === false) {
+    displayError(RETURN_TYPES.INVALID_FIRM_NAME_FORMAT);
+    return false;
+  }
+
+  if (validateName(firmFields.representative_name) === false) {
+    displayError(RETURN_TYPES.INVALID_REPRESENTATIVE_NAME_FORMAT);
+    return false;
+  }
+
+  if (validateTelephone(firmFields.telephone) === false) {
+    displayError(RETURN_TYPES.INVALID_TELEPHONE_FORMAT);
+    return false;
+  }
+
+  if (validateCUI(firmFields.cui) === false) {
+    displayError(RETURN_TYPES.INVALID_CUI_FORMAT);
+    return false;
+  }
+
+  return true;
+};
 const formatLabel = (key: string) => {
   return key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 };

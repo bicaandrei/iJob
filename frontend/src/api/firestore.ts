@@ -377,6 +377,7 @@ const setJobApplicationDocument = async (
         job_id: job_application_form.job_id,
         name: job_application_form.name,
         email: job_application_form.email,
+        telephone: job_application_form.telephone,
         experience: job_application_form.experience,
         suitability: job_application_form.suitability,
         cv: downloadUrl,
@@ -567,6 +568,7 @@ const getJobApplicationsByJobId = async (
 const editUserDocument = async (
   uid: string,
   email: string,
+  telephone: string,
   name: string,
   profile_pic: File | null
 ): Promise<RETURN_TYPES> => {
@@ -582,6 +584,7 @@ const editUserDocument = async (
         doc(db, firestoreCollectionsConfig.user_collection, uid),
         {
           email: email || "",
+          telephone: telephone || "",
           name: name || "Anonymous",
           profile_pic: profilePicUrl || "",
         },
@@ -592,6 +595,7 @@ const editUserDocument = async (
         doc(db, firestoreCollectionsConfig.user_collection, uid),
         {
           email: email || "",
+          telephone: telephone || "",
           name: name || "Anonymous",
         },
         {

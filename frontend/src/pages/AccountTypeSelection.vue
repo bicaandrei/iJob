@@ -25,9 +25,9 @@
         relevant analytics.
       </p>
       <ul>
-        <li class="perk">Browse job listings</li>
-        <li class="perk">Apply for positions</li>
-        <li class="perk">Manage your profile</li>
+        <li class="perk">Post job openings</li>
+        <li class="perk">Find best candidates</li>
+        <li class="perk">Manage firm account</li>
       </ul>
       <button class="btn primary" @click="redirectToFirmSignup">
         Create Firm Account

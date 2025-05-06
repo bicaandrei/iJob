@@ -141,6 +141,7 @@ const userStore = useUserStore();
 const user = userStore.userInfo || {
   google_uid: "",
   name: "",
+  telephone: "",
   email: "",
   profile_pic: "",
 };
@@ -231,6 +232,7 @@ const sendApplication = async () => {
     job_id: job_id,
     name: name.value,
     email: email.value,
+    telephone: user.telephone,
     experience: experience.value || 0,
     cv: cv.value,
     suitability: suitability.value,
@@ -243,12 +245,15 @@ const sendApplication = async () => {
   );
 
   if (return_type === RETURN_TYPES.SUCCESS) {
+    console.log("Application sent successfully!");
     snackbarRef.value?.showSnackbar(
       "Job application successfully sent!",
       "success"
     );
 
-    emit("applicationSubmitted");
+    setTimeout(() => {
+      emit("applicationSubmitted");
+    }, 2000);
   } else {
     displayError(return_type);
   }

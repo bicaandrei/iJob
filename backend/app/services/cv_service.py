@@ -330,7 +330,7 @@ def generate_cv_report(score, job_title, candidate_name, extracted_skills, job_r
         y -= 10
 
     if missing_skills_text == []:
-        c.drawString(100, y, "✅ No missing skills found. You are well-prepared for the job!")
+        c.drawString(100, y, "✅ No missing skills found. You need more professional experience!")
     else:
         c.setFont("Helvetica-Oblique", 12)
         if y <= 100:
