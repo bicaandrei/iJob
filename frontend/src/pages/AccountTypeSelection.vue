@@ -99,11 +99,11 @@ const redirectToFirmSignup = () => {
 }
 
 .primary {
-  background: #007bff;
+  background: #00c49a;
   color: #fff;
 }
 .primary:hover {
-  background: #0056b3;
+  background: #00a880;
 }
 
 @media (max-width: 768px) {
