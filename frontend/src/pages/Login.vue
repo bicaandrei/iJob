@@ -82,7 +82,7 @@ const displayError = (error_type: RETURN_TYPES) => {
 
 <style scoped>
 .auth-container {
-  max-width: 400px;
+  max-width: 300px;
   margin: 80px auto;
   padding: 2rem;
   border: 1px solid #e0e0e0;
@@ -116,7 +116,7 @@ const displayError = (error_type: RETURN_TYPES) => {
   transition: border 0.2s;
 }
 .input:focus {
-  border-color: #007bff;
+  border-color: #00a880;
   outline: none;
 }
 
@@ -130,11 +130,11 @@ const displayError = (error_type: RETURN_TYPES) => {
 }
 
 .primary {
-  background: #007bff;
+  background: #00c49a;
   color: #fff;
 }
 .primary:hover {
-  background: #0056b3;
+  background: #00a880;
 }
 
 .google {
@@ -161,7 +161,7 @@ const displayError = (error_type: RETURN_TYPES) => {
 }
 
 .link {
-  color: #007bff;
+  color: #00a880;
   cursor: pointer;
   margin-left: 4px;
 }

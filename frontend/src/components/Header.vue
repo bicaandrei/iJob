@@ -56,19 +56,36 @@ const onTitleClick = () => {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  background-color: #007bff;
+  background: linear-gradient(135deg, #1e1e1e, #2a2a2a);
   color: white;
+  border-bottom: 1px solid #333;
 }
 
 .title {
   font-size: 24px;
   font-weight: bold;
   margin-left: 2%;
-  background-color: #007bff;
+  background: none;
+  color: white;
   border: none;
+  cursor: pointer;
 }
 
-.sign-in-btn,
+.sign-in-btn {
+  padding: 8px 16px;
+  font-size: 16px;
+  margin-right: 2%;
+  background-color: #ffffff11;
+  color: white;
+  border: 1px solid #888;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.sign-in-btn:hover {
+  background-color: #ffffff22;
+}
+
 .sign-out-btn {
   padding: 8px 16px;
   font-size: 16px;
@@ -80,7 +97,6 @@ const onTitleClick = () => {
   cursor: pointer;
 }
 
-.sign-in-btn:hover,
 .sign-out-btn:hover {
   background-color: #e0e0e0;
 }
