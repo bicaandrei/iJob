@@ -436,8 +436,13 @@ onMounted(() => {
   resize: vertical;
   min-height: 100px;
 }
+.textarea:focus {
+  border-color: #00a880;
+  outline: none;
+}
+
 .input:focus {
-  border-color: #007bff;
+  border-color: #00a880;
   outline: none;
 }
 .tech-stack-container {
@@ -468,11 +473,11 @@ onMounted(() => {
   transition: background 0.3s;
 }
 .primary {
-  background: #007bff;
+  background: #00c49a;
   color: #fff;
 }
 .primary:hover {
-  background: #0056b3;
+  background: #00a880;
 }
 .add-tech-btn {
   background: #4caf50;
@@ -518,5 +523,6 @@ onMounted(() => {
   width: 1.2rem; /* Adjust the size of the checkbox */
   height: 1.2rem;
   cursor: pointer; /* Add pointer cursor for better UX */
+  accent-color: #00a880;
 }
 </style>

@@ -55,21 +55,13 @@
 
       <div class="cv-analysis-row">
         <button class="cv-upload-btn" @click="getCVAnalysis">
-          Obtain a CV analysis
+          Obtain CV analysis
         </button>
 
         <div class="cv-result-area">
           <div v-if="loadingAnalyisis" class="spinner-container-inline">
             <div class="spinner small-spinner"></div>
             <p>Analyzing...</p>
-          </div>
-          <div v-else-if="cvScore !== null">
-            <p>
-              <strong>CV Suitability: {{ cvScore }} %</strong>
-            </p>
-            <p>
-              <strong>{{ cvAnalysisMessage }}</strong>
-            </p>
           </div>
         </div>
       </div>
@@ -97,11 +89,19 @@
   <div v-if="showAnalysisModal" class="modal-overlay">
     <div class="modal">
       <h2>CV Analysis Report</h2>
-      <p>
-        Your CV analysis score is below 75 %. We recommend reviewing the
-        analysis report to identify areas for improvement.
-      </p>
-      <button class="modal-btn" @click="openReport">View Report</button>
+      <div v-if="cvScore !== null && cvScore > 75">
+        <p><strong>CV Suitability:</strong> {{ cvScore }} %</p>
+        <p>
+          <strong>{{ cvAnalysisMessage }}</strong>
+        </p>
+      </div>
+      <div v-else-if="cvScore !== null">
+        <p>
+          Your CV analysis score is below 75%. We recommend reviewing the
+          analysis report to identify areas for improvement.
+        </p>
+        <button class="modal-btn" @click="openReport">View Report</button>
+      </div>
       <button class="modal-close-btn" @click="closeModal">Close</button>
     </div>
   </div>
@@ -206,9 +206,7 @@ const getCVAnalysis = async () => {
     cvAnalysisMessage.value = score.message;
     cvAnalysisReportUrl.value = score.cv_report_url;
 
-    if (cvAnalysisReportUrl.value) {
-      showAnalysisModal.value = true;
-    }
+    showAnalysisModal.value = true;
 
     console.log("CV Analysis Score:", score);
   } catch (error) {
@@ -294,6 +292,17 @@ const displayError = (error_type: RETURN_TYPES) => {
 </script>
 
 <style scoped>
+.job-application-container {
+  width: 40%;
+  margin: 20px auto;
+  padding: 1.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-family: Arial, sans-serif;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -313,8 +322,7 @@ const displayError = (error_type: RETURN_TYPES) => {
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   text-align: center;
-  width: 90%;
-  max-width: 400px;
+  width: 300px;
 }
 
 .modal h2 {
@@ -328,18 +336,18 @@ const displayError = (error_type: RETURN_TYPES) => {
 }
 
 .modal-btn {
-  background-color: #007bff;
+  background-color: #00c49a;
   color: #fff;
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
-  margin-right: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .modal-btn:hover {
-  background-color: #0056b3;
+  background-color: #00a880;
 }
 
 .modal-close-btn {
@@ -365,7 +373,7 @@ const displayError = (error_type: RETURN_TYPES) => {
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3; /* Light gray */
-  border-top: 4px solid #007bff; /* Blue */
+  border-top: 4px solid #00c49a; /* Blue */
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto;
@@ -388,8 +396,10 @@ const displayError = (error_type: RETURN_TYPES) => {
 
 .cv-analysis-row {
   display: flex;
-  align-items: center;
-  gap: 53%;
+  flex-direction: column; /* Stack items vertically on smaller screens */
+  align-items: center; /* Center align the spinner and button */
+  gap: 1rem; /* Add spacing between elements */
+  width: 100%; /* Ensure it takes the full width of the container */
 }
 
 .cv-result-area {
@@ -403,13 +413,20 @@ const displayError = (error_type: RETURN_TYPES) => {
 .spinner-container-inline {
   display: flex;
   align-items: center;
+  justify-content: center; /* Center the spinner horizontally */
   gap: 0.5rem;
+  width: 100%; /* Ensure it stays within the container */
+  text-align: center; /* Center-align the text */
 }
 
 .small-spinner {
   width: 20px;
   height: 20px;
   border-width: 3px;
+  border: 3px solid #f3f3f3; /* Light gray */
+  border-top: 3px solid #00c49a; /* Primary color */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 .cv-upload-container {
@@ -423,13 +440,14 @@ const displayError = (error_type: RETURN_TYPES) => {
 }
 
 .cv-upload-btn {
-  width: 30%;
+  width: 170px;
   display: inline-block;
   padding: 0.75rem 0.75rem;
   font-size: 1rem;
   font-weight: bold;
   color: #fff;
-  background-color: #007bff;
+  background-color: #00c49a;
+  margin-top: 1rem;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -437,19 +455,8 @@ const displayError = (error_type: RETURN_TYPES) => {
 }
 
 .cv-upload-btn:hover {
-  background-color: #0056b3;
+  background-color: #00a880;
   transform: scale(1.05);
-}
-
-.job-application-container {
-  width: 60%;
-  margin: 20px auto;
-  padding: 1.5rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  font-family: Arial, sans-serif;
 }
 
 .form-group {
@@ -463,6 +470,7 @@ const displayError = (error_type: RETURN_TYPES) => {
   font-size: 2rem;
   font-weight: bold;
   margin-bottom: 1.5rem;
+  color: #00c49a;
 }
 
 .form-group {
@@ -499,7 +507,7 @@ input[type="email"]:focus,
 input[type="number"]:focus,
 input[type="file"]:focus,
 textarea:focus {
-  border-color: #007bff;
+  border-color: #00c49a;
   outline: none;
 }
 
@@ -513,13 +521,13 @@ textarea::placeholder {
 
 .send-btn {
   display: block;
-  width: 35%;
+  width: 190px;
   padding: 0.75rem;
   font-size: 1.2rem;
   font-weight: bold;
   margin: 0 auto;
   color: #fff;
-  background: #007bff;
+  background: #00c49a;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -527,7 +535,7 @@ textarea::placeholder {
 }
 
 .send-btn:hover {
-  background: #0056b3;
+  background: #00a880;
 }
 
 .input {
@@ -537,8 +545,9 @@ textarea::placeholder {
   font-size: 1rem;
   transition: border 0.2s;
 }
+
 .input:focus {
-  border-color: #007bff;
+  border-color: #00c49a;
   outline: none;
 }
 
@@ -554,5 +563,18 @@ textarea::placeholder {
   width: 1.2rem; /* Adjust the size of the checkbox */
   height: 1.2rem;
   cursor: pointer; /* Add pointer cursor for better UX */
+  accent-color: #00a880;
+}
+
+@media (max-width: 1300px) {
+  .job-application-container {
+    width: 50%;
+  }
+}
+
+@media (max-width: 900px) {
+  .job-application-container {
+    width: 70%;
+  }
 }
 </style>

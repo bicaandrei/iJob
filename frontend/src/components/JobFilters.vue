@@ -54,6 +54,15 @@
       />
     </div>
 
+    <div class="filter-group">
+      <h3>Desired skill</h3>
+      <input
+        type="text"
+        v-model="selectedFilters.skill"
+        placeholder="Enter desired skill"
+      />
+    </div>
+
     <label for="remoteCheckbox" class="remote-checkbox-container">
       Includes remote work:
       <input
@@ -83,6 +92,7 @@ const selectedFilters = ref({
   positions: [] as string[],
   experience: "",
   datePosted: "",
+  skill: "",
 });
 
 const positions = ["Intern", "Junior", "Middle", "Senior"];
@@ -101,6 +111,7 @@ const removeFilters = () => {
     positions: [],
     experience: "",
     datePosted: "",
+    skill: "",
   };
   emit("remove-filters");
 };
@@ -118,12 +129,19 @@ watch(
 .filters-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  padding: 1.5rem;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: transparent; /* Remove white background */
+  border-radius: 0; /* Remove inner rounding */
+  box-shadow: none; /* Remove the inner shadow */
 }
 
 .filter-jobs-title {
   text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #00c49a;
 }
 
 .filter-group {
@@ -131,64 +149,94 @@ watch(
   flex-direction: column;
 }
 
-h3 {
+.filter-group h3 {
   font-size: 1rem;
-  font-weight: bold;
+  font-weight: 600;
+  color: #333;
   margin-bottom: 0.5rem;
 }
 
+input[type="text"],
+input[type="radio"],
+input[type="checkbox"] {
+  accent-color: #00a880;
+}
+
 input[type="text"] {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
   font-size: 1rem;
+  background-color: #f9f9f9;
+  transition: border 0.2s ease;
+}
+
+input[type="text"]:focus {
+  border-color: #00c49a;
+  outline: none;
+  background-color: #fff;
 }
 
 .checkbox-group,
 .radio-group {
   display: flex;
   align-items: center;
-  margin-bottom: 0.5rem;
 }
 
 .checkbox-group label,
 .radio-group label {
   margin-left: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  color: #444;
 }
 
 .button-container {
   grid-column: span 2;
   text-align: center;
-  margin-bottom: 1rem;
+  margin-top: 1rem;
 }
 
 .remove-filters-button {
   padding: 0.75rem 1.5rem;
-  background-color: #007bff;
-  color: white;
+  background-color: #00c49a;
+  color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 2rem;
   cursor: pointer;
   font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
 }
 
 .remove-filters-button:hover {
-  background-color: #0056b3;
+  background-color: #00a880;
 }
+
 .remote-checkbox-container {
   display: flex;
-  align-items: center; /* Vertically align the checkbox and label */
-  gap: 0.5rem; /* Add spacing between the checkbox and the label */
-  font-size: 1rem; /* Adjust font size for the label */
-  cursor: pointer; /* Make the label clickable */
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
   justify-content: left;
   margin-top: 2.5rem;
+  color: #444;
 }
 
 .remote-checkbox {
-  width: 1.2rem; /* Adjust the size of the checkbox */
+  width: 1.2rem;
   height: 1.2rem;
   cursor: pointer;
+  accent-color: #00a880;
+}
+
+@media (max-width: 768px) {
+  .filters-container {
+    grid-template-columns: 1fr; /* Single column layout */
+  }
+
+  .button-container {
+    grid-column: span 1;
+  }
 }
 </style>

@@ -31,6 +31,7 @@
             v-model="userFields[user_key]"
             :disabled="user_key === 'email'"
             type="text"
+            class="input"
           />
         </div>
 
@@ -46,6 +47,7 @@
             v-model="firmFields[firm_key]"
             :disabled="firm_key === 'email'"
             type="text"
+            class="input"
           />
         </div>
 
@@ -203,10 +205,10 @@ const validateFirmForm = (): Boolean => {
     return false;
   }
 
-  if (validateName(firmFields.company_name) === false) {
-    displayError(RETURN_TYPES.INVALID_FIRM_NAME_FORMAT);
-    return false;
-  }
+  // if (validateName(firmFields.company_name) === false) {
+  //   displayError(RETURN_TYPES.INVALID_FIRM_NAME_FORMAT);
+  //   return false;
+  // }
 
   if (validateName(firmFields.representative_name) === false) {
     displayError(RETURN_TYPES.INVALID_REPRESENTATIVE_NAME_FORMAT);
@@ -247,6 +249,7 @@ const displayError = (error_type: RETURN_TYPES) => {
   justify-content: space-between;
   align-items: flex-start;
   padding: 40px;
+  flex-wrap: wrap;
 }
 
 .header h1 {
@@ -258,6 +261,7 @@ const displayError = (error_type: RETURN_TYPES) => {
   flex: 1;
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 
 .user-form {
@@ -266,11 +270,11 @@ const displayError = (error_type: RETURN_TYPES) => {
   gap: 20px;
   max-width: 600px;
   width: 100%;
-  text-align: center; /* Center-align content */
+  text-align: center;
 }
 
 .profile-pic-container {
-  grid-column: span 2; /* Make the profile picture span across both columns */
+  grid-column: span 2;
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
@@ -294,6 +298,11 @@ input {
   background-color: #f9f9f9;
 }
 
+.input:focus {
+  border-color: #00a880;
+  outline: none;
+}
+
 .save-changes-button-container {
   grid-column: span 2;
   display: flex;
@@ -302,7 +311,7 @@ input {
 
 .save-changes-button {
   padding: 10px 20px;
-  background-color: #007bff;
+  background-color: #00c49a;
   color: white;
   border: none;
   border-radius: 6px;
@@ -311,7 +320,7 @@ input {
 }
 
 .save-changes-button:hover {
-  background-color: #0056b3;
+  background-color: #00a880;
 }
 
 .profile-pic-wrapper {
@@ -345,5 +354,21 @@ input {
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #ccc;
+}
+
+/* 🧩 Add this media query for responsiveness */
+@media (max-width: 600px) {
+  .user-form {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-pic-container {
+    grid-column: span 1;
+    justify-content: center;
+  }
+
+  .save-changes-button-container {
+    grid-column: span 1;
+  }
 }
 </style>
