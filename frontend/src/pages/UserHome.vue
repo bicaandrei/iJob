@@ -1,74 +1,78 @@
 <template>
   <div class="user-home-container">
-    <h1 class="page-title">Available Jobs</h1>
+    <div class="filters-wrapper">
+      <button class="toggle-filters-btn" @click="showFilters = !showFilters">
+        {{ showFilters ? "Hide Filters ▲" : "Show Filters ▼" }}
+      </button>
 
-    <div class="filters-section">
-      <JobFilters
-        @filter-change="applyFilters"
-        @remove-filters="removeFilters"
-      />
-    </div>
-
-    <div class="jobs-section">
-      <div v-if="isLoading && jobs.length === 0" class="loading-state">
-        Loading jobs...
-      </div>
-      <div v-else-if="filteredJobs.length === 0" class="empty-state">
-        No jobs match the selected filters.
-      </div>
-      <div v-else class="jobs-grid">
-        <div
-          v-for="job in filteredJobs"
-          :key="job.id"
-          @click="goToJob(job.id)"
-          class="job-card"
-        >
-          <div class="card-header">
-            <div class="company-info">
-              <img
-                :src="job.firm_profile_pic || defaultProfilePicture"
-                alt="Company Logo"
-                class="company-logo"
-              />
-              <h3 class="company-name">{{ job.company_name }}</h3>
-            </div>
-
-            <div>
-              <h2 class="job-title">{{ job.title }} ({{ job.position }})</h2>
-              <p class="job-description">
-                <span class="label">Job description: </span>
-                <span class="value">{{ job.description }}</span>
-              </p>
-              <p class="job-experience">
-                <span class="label">Required experience: </span>
-                <span class="value">{{ job.requiredExperience }}</span>
-              </p>
-              <p class="job-location">
-                <span class="label">Location: </span>
-                <span class="value">{{ job.location }}</span>
-              </p>
-              <p class="tech-stack">
-                <span class="label">Required skills: </span>
-                <span class="value">{{ getRequiredSkills(job) }}</span>
-              </p>
-              <p class="job-is-remote">
-                <span class="label">Includes remote work: </span>
-                <span class="value">{{ job.is_remote }}</span>
-              </p>
-            </div>
-          </div>
-          <div class="job-created-at">
-            Posted {{ timeSince(job.created_at) }}
-          </div>
+      <transition @before-enter="beforeEnter" @enter="enter" @leave="leave">
+        <div v-show="showFilters" ref="filtersContainer" class="filters-panel">
+          <JobFilters
+            @filter-change="applyFilters"
+            @remove-filters="removeFilters"
+          />
         </div>
+      </transition>
+    </div>
+
+    <div v-if="isLoading && jobs.length === 0" class="loading-state">
+      Loading jobs...
+    </div>
+    <div v-else-if="filteredJobs.length === 0" class="empty-state">
+      No jobs match the selected filters.
+    </div>
+
+    <div class="jobs-grid">
+      <div
+        v-for="job in filteredJobs"
+        :key="job.id"
+        @click="goToJob(job.id)"
+        class="job-card"
+      >
+        <div class="card-header">
+          <img
+            :src="job.firm_profile_pic || defaultProfilePicture"
+            alt="Company Logo"
+            class="company-logo"
+          />
+          <h3 class="company-name">{{ job.company_name }}</h3>
+        </div>
+
+        <h2 class="job-title">{{ job.title }} ({{ job.position }})</h2>
+        <p class="job-description">{{ job.description }}</p>
+
+        <div class="job-details">
+          <p>
+            <span class="label">Experience:</span> {{ job.requiredExperience }}
+          </p>
+          <p><span class="label">Location:</span> {{ job.location }}</p>
+          <p>
+            <span class="label">Remote:</span>
+            {{ job.is_remote ? "Yes" : "No" }}
+          </p>
+        </div>
+
+        <div class="tech-stack">
+          <h4>Required Skills:</h4>
+          <ul>
+            <li
+              v-for="skill in getRequiredSkills(job).split(', ')"
+              :key="skill"
+            >
+              {{ skill }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="job-created-at">Posted {{ timeSince(job.created_at) }}</div>
       </div>
     </div>
+  </div>
 
-    <div ref="loadMoreTrigger" class="load-more-trigger"></div>
+  <div ref="loadMoreTrigger" class="load-more-trigger"></div>
 
-    <div v-if="isLoading && jobs.length > 0" class="loading-state">
-      Loading more jobs...
-    </div>
+  <div v-if="isLoading && jobs.length > 0" class="loading-state">
+    Loading more jobs...
   </div>
 </template>
 
@@ -87,6 +91,41 @@ const pageSize = 10;
 const isLoading = ref(false);
 const hasMoreJobs = ref(true);
 const loadMoreTrigger = ref<HTMLDivElement | null>(null);
+const showFilters = ref(false);
+
+const filters = ref({
+  jobTitle: "",
+  jobLocation: "",
+  jobIsRemote: false,
+  positions: [] as string[],
+  experience: "",
+  skill: "",
+  datePosted: "",
+});
+
+const applyFilters = (selectedFilters: {
+  jobTitle: string;
+  jobLocation: string;
+  jobIsRemote: boolean;
+  positions: string[];
+  experience: string;
+  skill: string;
+  datePosted: string;
+}) => {
+  filters.value = selectedFilters;
+};
+
+const removeFilters = () => {
+  filters.value = {
+    jobTitle: "",
+    jobLocation: "",
+    jobIsRemote: false,
+    positions: [] as string[],
+    experience: "",
+    skill: "",
+    datePosted: "",
+  };
+};
 
 const goToJob = (id: string) => {
   router.push({ name: "user-job-details-route", params: { id } });
@@ -192,6 +231,18 @@ const filteredJobs = computed(() => {
       return false;
     }
 
+    if (filters.value.skill) {
+      const skills = [
+        ...(job.programming_languages || []),
+        ...(job.frameworks || []),
+        ...(job.certifications || []),
+        ...(job.tools || []),
+      ];
+      if (!skills.some((skill) => skill.includes(filters.value.skill))) {
+        return false;
+      }
+    }
+
     if (filters.value.datePosted) {
       const now = new Date();
       const jobDate =
@@ -212,37 +263,6 @@ const filteredJobs = computed(() => {
   });
 });
 
-const filters = ref({
-  jobTitle: "",
-  jobLocation: "",
-  jobIsRemote: false,
-  positions: [] as string[],
-  experience: "",
-  datePosted: "",
-});
-
-const applyFilters = (selectedFilters: {
-  jobTitle: string;
-  jobLocation: string;
-  jobIsRemote: boolean;
-  positions: string[];
-  experience: string;
-  datePosted: string;
-}) => {
-  filters.value = selectedFilters;
-};
-
-const removeFilters = () => {
-  filters.value = {
-    jobTitle: "",
-    jobLocation: "",
-    jobIsRemote: false,
-    positions: [] as string[],
-    experience: "",
-    datePosted: "",
-  };
-};
-
 onMounted(() => {
   fetchJobs();
 
@@ -256,6 +276,38 @@ onBeforeUnmount(() => {
     observer.unobserve(loadMoreTrigger.value);
   }
 });
+
+const filtersContainer = ref<HTMLElement | null>(null);
+
+const beforeEnter = (el: Element) => {
+  (el as HTMLElement).style.height = "0";
+  (el as HTMLElement).style.opacity = "0";
+};
+
+const enter = (el: Element, done: () => void) => {
+  const element = el as HTMLElement;
+  element.style.transition = "all 0.3s ease";
+  element.style.height = element.scrollHeight + "px";
+  element.style.opacity = "1";
+
+  const cleanup = () => {
+    element.style.height = "auto";
+    done();
+  };
+  element.addEventListener("transitionend", cleanup, { once: true });
+};
+
+const leave = (el: Element, done: () => void) => {
+  const element = el as HTMLElement;
+  element.style.transition = "all 0.3s ease";
+  element.style.height = element.scrollHeight + "px";
+  requestAnimationFrame(() => {
+    element.style.height = "0";
+    element.style.opacity = "0";
+  });
+
+  element.addEventListener("transitionend", done, { once: true });
+};
 </script>
 
 <style scoped>
@@ -266,6 +318,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center; /* Center all content horizontally */
+  background-color: #ffffff;
 }
 
 .page-title {
@@ -273,77 +326,172 @@ onBeforeUnmount(() => {
   margin-bottom: 1rem;
 }
 
+.filters-section {
+  width: 60%;
+  max-width: 600px;
+  background: white;
+  border-radius: 0.375rem;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  padding: 1rem;
+  margin-bottom: 2rem;
+}
+
+.filters-wrapper {
+  width: 85%;
+  max-width: 700px;
+  background: white;
+  border-radius: 0.375rem;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
 .toggle-filters-btn {
-  padding: 0.5rem 1rem;
-  background-color: #4a90e2;
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #00c49a;
   color: white;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem 0.5rem 0 0;
   cursor: pointer;
-  margin-bottom: 1rem;
-  transition: background-color 0.3s;
+  font-weight: bold;
 }
 
-.toggle-filters-btn:hover {
-  background-color: #357abd;
-}
-
-.filters-section {
-  width: 100%;
-  max-width: 800px;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
-  background: #fff;
-  margin-bottom: 2rem;
+.filters-panel {
+  padding: 1rem;
 }
 
 .jobs-section {
   width: 100%;
   max-width: 800px;
+  z-index: 10;
 }
 
 .jobs-grid {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
+  padding: 2rem;
+  box-sizing: border-box;
+  justify-content: flex-start;
   width: 100%;
 }
 
 .job-card {
-  position: relative;
+  position: relative; /* Make the job card a positioned container */
+  flex: 1 1 calc(33.333% - 1rem); /* Default: 3 per row */
+  max-width: calc(33.333% - 1rem);
+  min-width: 300px;
+  min-height: 350px;
+  box-sizing: border-box;
   padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
   background: #fff;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.3s, transform 0.2s;
 }
 
 .job-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 16px #00c49a; /* Updated box shadow color */
+  transform: translateY(-5px);
 }
 
 .job-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: bold;
+  color: #00c49a; /* Highlight the job title */
   margin-bottom: 0.5rem;
 }
 
-.job-description,
-.job-position,
-.job-experience,
-.job-locations,
-.job-is-remote,
-.job-tech-stack {
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.company-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+}
+
+.company-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
 }
 
 .label {
   font-weight: bold;
   color: black;
+  display: inline-block;
 }
 
 .value {
   color: #555;
+}
+
+.job-description {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.job-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.job-details p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.job-details .label {
+  font-weight: bold;
+  color: #333;
+}
+
+.tech-stack {
+  margin-top: 1rem;
+}
+
+.tech-stack h4 {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.tech-stack ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tech-stack ul li {
+  background: #f0f4f8;
+  color: #00c49a;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.job-created-at {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.875rem;
+  color: #777;
 }
 
 .loading-state {
@@ -357,31 +505,31 @@ onBeforeUnmount(() => {
   visibility: hidden;
 }
 
-.company-info {
-  text-align: center;
-  margin-bottom: 1rem;
+@media (max-width: 1300px) {
+  .filters-section {
+    width: calc(50% - 1rem); /* Match the width of job cards (2 per row) */
+    max-width: calc(50% - 1rem);
+  }
+
+  .job-card {
+    flex: 1 1 calc(50% - 1rem); /* 2 per row on medium screens */
+    max-width: calc(50% - 1rem);
+  }
 }
 
-.company-logo {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-}
+@media (max-width: 900px) {
+  .filters-section {
+    width: 100%; /* Match the width of job cards (1 per row) */
+    max-width: 100%;
+  }
 
-.company-name {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #333;
-}
+  .jobs-grid {
+    justify-content: center;
+  }
 
-.job-created-at {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  font-size: 0.875rem;
-
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  .job-card {
+    flex: 1 1 100%; /* 1 per row on small screens */
+    max-width: 100%;
+  }
 }
 </style>

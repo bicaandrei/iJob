@@ -1,5 +1,14 @@
 <template>
   <div class="job-details-container">
+    <!-- Firm Profile Picture -->
+    <div class="firm-logo-container">
+      <img
+        :src="job?.firm_profile_pic || defaultProfilePicture"
+        alt="Company Logo"
+        class="firm-logo"
+      />
+    </div>
+
     <h1 class="page-title">{{ job?.title }}</h1>
     <p class="job-firm"><strong>Company:</strong> {{ job?.company_name }}</p>
     <p class="job-position"><strong>Position:</strong> {{ job?.position }}</p>
@@ -12,25 +21,17 @@
     <p class="job-experience">
       <strong>Required Experience:</strong> {{ job?.requiredExperience }}
     </p>
-    <p v-if="job?.programming_languages.length" class="job-tech-stack">
-      <strong>Required programming languages:</strong>
-      {{ job.programming_languages.join(", ") }}
-    </p>
-    <p v-if="job?.frameworks.length" class="job-tech-stack">
-      <strong>Required frameworks:</strong>
-      {{ job.frameworks.join(", ") }}
-    </p>
-    <p v-if="job?.certifications.length" class="job-tech-stack">
-      <strong>Required certifications:</strong>
-      {{ job.certifications.join(", ") }}
-    </p>
-    <p v-if="job?.tools.length" class="job-tech-stack">
-      <strong>Required tools:</strong>
-      {{ job.tools.join(", ") }}
-    </p>
+    <div class="tech-stack">
+      <h4>Required Skills:</h4>
+      <ul>
+        <li v-for="skill in getRequiredSkills(job).split(', ')" :key="skill">
+          {{ skill }}
+        </li>
+      </ul>
+    </div>
 
     <p class="job-description">
-      <strong>Includes remote work:</strong> {{ job?.is_remote }}
+      <strong>Includes remote work:</strong> {{ job?.is_remote ? "Yes" : "No" }}
     </p>
 
     <div v-if="isApplicationAlreadySent">
@@ -73,6 +74,7 @@ import { getJobFirmById, isApplicationSent } from "../api/firestore";
 import type { JobFirm } from "../models/job";
 import JobApplication from "../components/JobApplication.vue";
 import { useUserStore } from "../stores/user";
+import defaultProfilePicture from "../assets/default_profile_picture.png";
 
 const userStore = useUserStore();
 const user = userStore.userInfo || { google_uid: "", name: "", email: "" };
@@ -90,6 +92,7 @@ const fetchJobDetails = async () => {
     const jobData = await getJobFirmById(jobId);
     if (jobData) {
       job.value = jobData;
+      console.log("Job data:", job.value);
 
       const { application_date, sent } = await isApplicationSent(
         user.google_uid,
@@ -104,6 +107,16 @@ const fetchJobDetails = async () => {
       }
     }
   }
+};
+
+const getRequiredSkills = (job: JobFirm | null): string => {
+  const skills = [
+    ...(job?.programming_languages || []),
+    ...(job?.frameworks || []),
+    ...(job?.certifications || []),
+    ...(job?.tools || []),
+  ];
+  return skills.length > 0 ? skills.join(", ") : "None";
 };
 
 const applyToJob = () => {
@@ -146,8 +159,22 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.firm-logo-container {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.firm-logo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 .job-details-container {
-  width: 60%;
+  width: 40%;
   margin: 20px auto;
   padding: 1.5em;
   border: 1px solid #e0e0e0;
@@ -162,7 +189,7 @@ onMounted(async () => {
   font-size: 2.5rem;
   font-weight: bold;
   margin-bottom: 2rem;
-  color: #333;
+  color: #00c49a;
 }
 
 .job-info {
@@ -193,7 +220,7 @@ onMounted(async () => {
 }
 
 .apply-btn {
-  width: 35%;
+  width: 220px;
   display: block;
   margin: 2rem auto;
   padding: 0.75rem 1.5rem;
@@ -201,14 +228,14 @@ onMounted(async () => {
   font-weight: bold;
   border: none;
   border-radius: 8px;
-  background: #007bff;
+  background: #00c49a;
   color: #fff;
   cursor: pointer;
   transition: background 0.3s, transform 0.2s;
 }
 
 .delete-application-btn {
-  width: 35%;
+  width: 220px;
   display: block;
   margin: 2rem auto;
   padding: 0.75rem 1.5rem;
@@ -222,16 +249,43 @@ onMounted(async () => {
   transition: background 0.3s, transform 0.2s;
 }
 
-.apply-btn:hover {
-  background: #0056b3;
+.delete-application-btn:hover {
+  background: #cc0000;
   transform: scale(1.05);
 }
 
-.applying-state {
-  text-align: center;
-  font-size: 1.25rem;
-  color: #007bff;
+.apply-btn:hover {
+  background: #00a880;
+  transform: scale(1.05);
+}
+
+.tech-stack {
   margin-top: 1rem;
+}
+
+.tech-stack h4 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.tech-stack ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tech-stack ul li {
+  background: #f0f4f8;
+  color: #00c49a;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .success-state {
@@ -245,5 +299,17 @@ onMounted(async () => {
   text-align: center;
   font-size: 1.2rem;
   font-weight: bold;
+}
+
+@media (max-width: 1300px) {
+  .job-details-container {
+    width: 50%;
+  }
+}
+
+@media (max-width: 900px) {
+  .job-details-container {
+    width: 70%;
+  }
 }
 </style>

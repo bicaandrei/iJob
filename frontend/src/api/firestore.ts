@@ -230,17 +230,17 @@ const getJobFirmById = async (id: string): Promise<JobFirm | null> => {
           ...job,
           company_name: firmData.company_name || "",
           email: firmData.email || "",
-          firm_profile_pic: firmData.firm_profile_pic || "",
+          firm_profile_pic: firmData.profile_pic || defaultProfilePicture,
           telephone: firmData.telephone || "",
-        };
+        } as JobFirm;
       } else {
         return {
           ...job,
           company_name: "",
           email: "",
-          firm_profile_pic: "",
+          firm_profile_pic: defaultProfilePicture,
           telephone: "",
-        };
+        } as JobFirm;
       }
     }
 

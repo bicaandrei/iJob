@@ -415,7 +415,7 @@ const displayError = (error_type: RETURN_TYPES) => {
 }
 
 .textarea:focus {
-  border-color: #007bff;
+  border-color: #00a880;
   outline: none;
 }
 .input {
@@ -426,7 +426,7 @@ const displayError = (error_type: RETURN_TYPES) => {
   transition: border 0.2s;
 }
 .input:focus {
-  border-color: #007bff;
+  border-color: #00a880;
   outline: none;
 }
 .tech-stack-container {
@@ -457,27 +457,11 @@ const displayError = (error_type: RETURN_TYPES) => {
   transition: background 0.3s;
 }
 .primary {
-  background: #007bff;
+  background: #00c49a;
   color: #fff;
 }
 .primary:hover {
-  background: #0056b3;
-}
-.add-tech-btn {
-  background: #4caf50;
-  color: #fff;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s;
-  text-align: center;
-  margin-top: 0.5rem;
-  width: 50%;
-}
-.add-tech-btn:hover {
-  background: #388e3c;
+  background: #00a880;
 }
 .remove-tech-btn {
   background: #dc2626;
@@ -508,5 +492,6 @@ const displayError = (error_type: RETURN_TYPES) => {
   width: 1.2rem; /* Adjust the size of the checkbox */
   height: 1.2rem;
   cursor: pointer; /* Add pointer cursor for better UX */
+  accent-color: #00a880;
 }
 </style>

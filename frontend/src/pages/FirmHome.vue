@@ -17,30 +17,46 @@
             <div>
               <h2 class="job-title">{{ job.title }} ({{ job.position }})</h2>
               <p class="job-description">{{ job.description }}</p>
-              <p v-if="job.programming_languages.length" class="tech-stack">
-                Required programming languages:
-                <span class="skills">{{
-                  job.programming_languages.join(", ")
-                }}</span>
-              </p>
-              <p v-if="job.frameworks.length" class="tech-stack">
-                Required frameworks:
-                <span class="skills">{{ job.frameworks.join(", ") }}</span>
-              </p>
-              <p v-if="job.certifications.length" class="tech-stack">
-                Required certifications:
-                <span class="skills">{{ job.certifications.join(", ") }}</span>
-              </p>
-              <p v-if="job.tools.length" class="tech-stack">
-                Required tools:
-                <span class="skills">{{ job.tools.join(", ") }}</span>
-              </p>
+              <div v-if="job.programming_languages.length" class="tech-stack">
+                <span class="tech-stack-label"
+                  >Required programming languages:</span
+                >
+                <ul>
+                  <li v-for="lang in job.programming_languages" :key="lang">
+                    {{ lang }}
+                  </li>
+                </ul>
+              </div>
+
+              <div v-if="job.frameworks.length" class="tech-stack">
+                <span class="tech-stack-label">Required frameworks:</span>
+                <ul>
+                  <li v-for="fw in job.frameworks" :key="fw">{{ fw }}</li>
+                </ul>
+              </div>
+
+              <div v-if="job.certifications.length" class="tech-stack">
+                <span class="tech-stack-label">Required certifications:</span>
+                <ul>
+                  <li v-for="cert in job.certifications" :key="cert">
+                    {{ cert }}
+                  </li>
+                </ul>
+              </div>
+
+              <div v-if="job.tools.length" class="tech-stack">
+                <span class="tech-stack-label">Required tools:</span>
+                <ul>
+                  <li v-for="tool in job.tools" :key="tool">{{ tool }}</li>
+                </ul>
+              </div>
+
               <p class="job-location">
-                Location: <span class="skills">{{ job.location }}</span>
+                Location: <span class="info">{{ job.location }}</span>
               </p>
               <p class="job-is-remote">
                 Includes remote work:
-                <span class="skills">{{ job.is_remote }}</span>
+                <span class="info">{{ job.is_remote }}</span>
               </p>
             </div>
             <div class="card-actions">
@@ -125,110 +141,100 @@ onMounted(async () => {
 <style scoped>
 .container {
   display: flex;
-  height: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding: 1rem;
+  background: white;
+  gap: 1rem;
+  margin: 0 auto; /* Center the whole layout */
 }
 
 .sidebar {
-  width: 15%;
-  padding: 1rem;
-  background: #f3f4f6;
+  padding: 0.5rem 1rem;
   border-right: 1px solid #e5e7eb;
 }
 
 .add-job-btn {
-  width: 100%;
-  max-width: 140px;
-  margin-left: 15%;
-  margin-right: 15%;
-  background: #2563eb;
-  color: #fff;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  transition: background 0.2s;
+  background: #00c49a;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: inline-block;
+  margin-top: 1rem;
+  margin-right: 1rem;
 }
 
 .add-job-btn:hover {
-  background: #1d4ed8;
+  background: #00a880;
 }
 
 .main-content {
   flex: 1;
-  padding: 1.5rem;
-  overflow-y: auto;
+  padding: 1rem 2rem;
+  max-width: 1300px; /* Limit the width */
+  margin: 0 auto; /* Center horizontally */
 }
 
 .page-title {
   font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  color: #00c49a;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
+.loading-state,
 .empty-state {
+  text-align: center;
   color: #6b7280;
 }
 
 .jobs-grid {
   display: grid;
-  gap: 1rem;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
 .job-card {
-  padding: 1rem;
-
-  max-width: 80%;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: #ffffff;
+  /* Removed border */
   border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
-  background: #fff;
-  transition: box-shadow 0.2s;
-}
-
-.job-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .job-title {
-  font-size: 1.125rem;
+  font-size: 1.5rem;
   font-weight: 600;
-}
-
-.job-description {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
-}
-
-.skills {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
-}
-
-.job-is-remote,
-.job-location,
-.tech-stack {
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
+  color: #00c49a;
 }
 
 .card-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 
 .edit-btn,
 .delete-btn {
-  font-size: 0.875rem;
-  cursor: pointer;
   background: none;
   border: none;
-  padding: 0;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  text-align: left;
 }
 
 .edit-btn {
@@ -248,14 +254,85 @@ onMounted(async () => {
 }
 
 .see-applicants-button {
-  background: #2563eb;
-  color: #fff;
+  background: #00c49a;
+  color: white;
   padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  transition: background 0.2s;
-  margin-top: 150%;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
+
 .see-applicants-button:hover {
-  background: #1d4ed8;
+  background: #00a880;
+}
+
+.tech-stack {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.job-location,
+.job-is-remote,
+.tech-stack-label {
+  font-weight: 600;
+  color: #111827; /* black */
+  white-space: nowrap;
+  margin-top: 0.25rem;
+}
+
+.info {
+  font-weight: 600;
+  color: grey; /* black */
+  white-space: nowrap;
+  margin-top: 0.25rem;
+}
+
+.tech-stack ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.job-description {
+  font-size: 1rem;
+  color: grey; /* grey */
+  margin-top: 0.5rem;
+}
+
+.tech-stack ul li {
+  background: #f0f4f8;
+  color: #00c49a;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    text-align: center;
+  }
+
+  .add-job-btn {
+    width: 100%;
+    max-width: 170px;
+    margin: 0 auto;
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
 }
 </style>

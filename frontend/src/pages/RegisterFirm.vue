@@ -115,10 +115,10 @@ const validateFirmForm = (): Boolean => {
     return false;
   }
 
-  if (validateName(company_name.value) === false) {
-    displayError(RETURN_TYPES.INVALID_FIRM_NAME_FORMAT);
-    return false;
-  }
+  // if (validateName(company_name.value) === false) {
+  //   displayError(RETURN_TYPES.INVALID_FIRM_NAME_FORMAT);
+  //   return false;
+  // }
 
   if (validateName(representative_name.value) === false) {
     displayError(RETURN_TYPES.INVALID_REPRESENTATIVE_NAME_FORMAT);
@@ -160,7 +160,7 @@ const displayError = (error_type: RETURN_TYPES) => {
 
 <style scoped>
 .auth-container {
-  max-width: 400px;
+  max-width: 300px;
   margin: 80px auto;
   padding: 2rem;
   border: 1px solid #e0e0e0;
@@ -191,7 +191,7 @@ const displayError = (error_type: RETURN_TYPES) => {
   transition: border 0.2s;
 }
 .input:focus {
-  border-color: #007bff;
+  border-color: #00a880;
   outline: none;
 }
 .btn {
@@ -203,11 +203,11 @@ const displayError = (error_type: RETURN_TYPES) => {
   transition: background 0.3s;
 }
 .primary {
-  background: #007bff;
+  background: #00c49a;
   color: #fff;
 }
 .primary:hover {
-  background: #0056b3;
+  background: #00a880;
 }
 .google {
   display: flex;

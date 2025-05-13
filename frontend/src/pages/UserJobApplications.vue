@@ -99,10 +99,15 @@ onMounted(async () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.job-application-card:hover {
+  box-shadow: 0 4px 16px #00c49a; /* Updated box shadow color */
+}
+
 .job-title {
   font-size: 1.25rem;
   font-weight: bold;
   margin-bottom: 0.5rem;
+  color: #00c49a;
 }
 
 .firm-name,
