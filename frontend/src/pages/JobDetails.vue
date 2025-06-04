@@ -53,6 +53,18 @@
       </button>
     </div>
   </div>
+
+  <img
+    class="bottom-left-illustration"
+    :src="dashboardIllustration"
+    alt="Dashboard Illustration"
+  />
+  <img
+    class="bottom-right-illustration"
+    :src="cvAnalysisIllustration"
+    alt="CV Analysis Illustration"
+  />
+
   <job-application
     v-if="isApplicationVisibile"
     :firm_id="job?.firm_id"
@@ -75,6 +87,8 @@ import type { JobFirm } from "../models/job";
 import JobApplication from "../components/JobApplication.vue";
 import { useUserStore } from "../stores/user";
 import defaultProfilePicture from "../assets/default_profile_picture.png";
+import dashboardIllustration from "../assets/dashboard_info_illustration.png";
+import cvAnalysisIllustration from "../assets/cv_analysis_illustration.png";
 
 const userStore = useUserStore();
 const user = userStore.userInfo || { google_uid: "", name: "", email: "" };
@@ -299,6 +313,32 @@ onMounted(async () => {
   text-align: center;
   font-size: 1.2rem;
   font-weight: bold;
+}
+
+.bottom-left-illustration,
+.bottom-right-illustration {
+  position: fixed;
+  bottom: -100px;
+  width: 30%;
+  z-index: -1;
+  pointer-events: none;
+  transform: rotate(-45deg); /* angle */
+}
+
+.bottom-right-illustration {
+  right: -100px;
+}
+
+.bottom-left-illustration {
+  left: -100px;
+  transform: rotate(45deg); /* mirrored angle */
+}
+
+@media (max-width: 768px) {
+  .bottom-left-illustration,
+  .bottom-right-illustration {
+    display: none;
+  }
 }
 
 @media (max-width: 1300px) {

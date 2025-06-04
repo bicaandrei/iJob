@@ -19,7 +19,6 @@ onMounted(() => {
   onAuthStateChanged(auth, async (currentUser) => {
     if (currentUser) {
       const idToken = await currentUser.getIdToken(true);
-      console.log(idToken);
 
       const doc = await getDocumentByUID(currentUser.uid);
       if (doc !== null) {

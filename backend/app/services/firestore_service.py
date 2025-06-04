@@ -4,6 +4,7 @@ from firebase_admin import credentials, firestore
 from app.db.firebase_init import FirestoreClient
 import os
 
+_cached_skills = None
 db = FirestoreClient.get_instance()
 FIRESTORE_SKILLS_COLLECTION = os.getenv("FIRESTORE_SKILLS_COLLECTION", "skills")
 
@@ -62,3 +63,40 @@ def get_certifications():
         certifications.append(certification.get("name", "").lower())
     
     return certifications
+
+def get_all_skills():
+
+    skills = {}
+    skills_ref = db.collection(FIRESTORE_SKILLS_COLLECTION)
+    docs = skills_ref.stream() 
+
+    for doc in docs:
+        skill = doc.to_dict()
+        skill_name = skill.get("name", "").lower() 
+        skill_types = skill.get("type", []) 
+        skills[skill_name] = skill_types
+
+    return skills
+
+def get_all_skills():
+    skills = {}
+    skills_ref = db.collection(FIRESTORE_SKILLS_COLLECTION)
+    docs = skills_ref.stream() 
+
+    for doc in docs:
+        skill = doc.to_dict()
+        skill_name = skill.get("name", "").lower()
+        skill_types = skill.get("type", [])  
+        skills[skill_name] = skill_types
+
+    return skills
+
+def get_all_skills_cached():
+    global _cached_skills
+    if _cached_skills is None:
+        _cached_skills = get_all_skills()
+    return _cached_skills
+
+def get_types_of_skill(skill_name):
+    all_skills = get_all_skills_cached()
+    return all_skills.get(skill_name, [])

@@ -1,6 +1,6 @@
 import spacy
 import pdfplumber
-from app.services.firestore_service import get_programming_languages, get_frameworks, get_tools, get_certifications
+from app.services.firestore_service import get_programming_languages, get_frameworks, get_tools, get_certifications, get_types_of_skill
 import re
 from dateutil import parser
 from datetime import datetime
@@ -14,6 +14,7 @@ from reportlab.graphics.charts.legends import Legend
 from app.services.storage_service import upload_to_google_storage
 import uuid
 import os
+import json
 
 def extract_text_from_pdf(file):
     with pdfplumber.open(file) as pdf:
@@ -90,6 +91,7 @@ def extract_experience(text):
     )
 
     matches = date_range_pattern.findall(work_experience_text)
+    print(matches)
     return matches
 
 def extract_candidate_name(text):
@@ -223,6 +225,28 @@ def calculate_cv_score(cv, job_requirements, job_required_experience, job_title)
 
     return final_score, message, None
 
+def draw_wrapped_text(canvas, text, x, y, max_width, line_height=16):
+    """
+    Draw text that automatically wraps within max_width.
+    Returns updated y position after drawing.
+    """
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+
+    words = text.split()
+    line = ""
+    for word in words:
+        test_line = f"{line} {word}".strip()
+        if stringWidth(test_line, "Helvetica", 13) <= max_width:
+            line = test_line
+        else:
+            canvas.drawString(x, y, line)
+            y -= line_height
+            line = word
+    if line:
+        canvas.drawString(x, y, line)
+        y -= line_height
+    return y
+
 def generate_cv_report(score, job_title, candidate_name, extracted_skills, job_requirements, extracted_years=None, min_required_years=None, max_required_years=None):
 
     c = canvas.Canvas("cv_report.pdf", pagesize=A4)
@@ -245,16 +269,15 @@ def generate_cv_report(score, job_title, candidate_name, extracted_skills, job_r
     missing_skills_text = []
 
     for category, required_skills in job_requirements.items():
-        categories.append(category.replace("_", " ").title())
         required_count = len(required_skills)
         matched_count = len(set(required_skills) & set(extracted_skills.get(category, [])))
-        missing = set(required_skills) - set(extracted_skills.get(category, []))
-        
-        required.append(required_count)
-        matched.append(matched_count)
-
-        if missing:
-            missing_skills_text.append(f"❌ Missing {category.replace('_', ' ').title()}: {', '.join(missing)}")
+        if required_count > 0 or matched_count > 0:
+            categories.append(category.replace("_", " ").title())
+            required.append(required_count)
+            matched.append(matched_count)
+            missing = set(required_skills) - set(extracted_skills.get(category, []))
+            if missing:
+                missing_skills_text.append(f"❌ Missing {category.replace('_', ' ').title()}: {', '.join(missing)}")
 
     drawing = Drawing(500, 250)
     chart = VerticalBarChart()
@@ -291,9 +314,36 @@ def generate_cv_report(score, job_title, candidate_name, extracted_skills, job_r
 
     drawing.drawOn(c, 50, height - 430)
 
+    c.setFont("Helvetica-Bold", 14)
+    y_skills_text = height - 440
+    c.drawString(100, y_skills_text, "Required Skills:")
+    y_skills_text -= 20
+
+    c.setFont("Helvetica", 12)
+    all_required_skills = [skill.title() for skills in job_requirements.values() for skill in skills]
+    c.drawString(110, y_skills_text, f"• {', '.join(all_required_skills)}")
+    y_skills_text -= 30
+
+    # Print Matched Skills
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(100, y_skills_text, "Matched Skills:")
+    y_skills_text -= 20
+
+    c.setFont("Helvetica", 12)
+    matched_skills = set()
+    for category, skills in extracted_skills.items():
+        matched_skills.update(set(skills) & set(job_requirements.get(category, [])))
+
+    capitalized_matched_skills = [skill.title() for skill in matched_skills]
+    c.drawString(110, y_skills_text, f"• {', '.join(capitalized_matched_skills)}")
+    y_skills_text -= 50
+
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(100, y_skills_text, "Experience Match Summary")
+
     experience_max = max(extracted_years or 0, min_required_years or 0, max_required_years or 0)
     experience_chart_height = 150 + (experience_max * 5)  
-    experience_y_offset = height - 480 - experience_chart_height  
+    experience_y_offset = height - 640 - experience_chart_height  
 
     draw_experience_comparison(
         c,
@@ -310,13 +360,15 @@ def generate_cv_report(score, job_title, candidate_name, extracted_skills, job_r
     c.drawString(100, height - 50, "Skill Gap Analysis")
 
     c.setFont("Helvetica", 14)
-    y = height - 100
+    y = height - 80
     for line in missing_skills_text:
+        c.setFont("Helvetica", 14)
         category, skills = line.split(": ", 1)
         c.drawString(100, y, category) 
         y -= 20
 
         for skill in skills.split(", "):
+            c.setFont("Helvetica", 12)
             c.drawString(120, y, f"- {skill.strip().title()}")
             y -= 20
 
@@ -341,50 +393,133 @@ def generate_cv_report(score, job_title, candidate_name, extracted_skills, job_r
         y -= 20
         c.drawString(100, y, "resources to help you upskill and bridge the gaps in your knowledge.")
 
+    y = y - 30
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(100, y, "Based on your level of experience, here are some suggestions for")
+    c.drawString(100, y - 20, "career improvement:")
+
+    c.setFont("Helvetica-Bold", 18)
+    y = y - 50
+    if extracted_years <= 2:
+        c.drawString(100, y, "Career Path Suggestions")
+    else:
+        c.drawString(100, y, "Career Improvement Suggestions")
+
+    c.setFont("Helvetica", 13)
+    y = y - 30
+
+    career_paths = suggest_career_paths(extracted_skills, extracted_years)
+
+    for suggestion in career_paths:
+        y = draw_wrapped_text(c, f"• {suggestion}", 100, y, max_width=400)
+        y -= 10
+
     c.save()
 
-def draw_experience_comparison(c, extracted_years, min_required_years, max_required_years, y_offset=300, chart_height=150):
-    drawing = Drawing(400, 200)
-    max_val = max(extracted_years, max_required_years or extracted_years) + 1
+def draw_experience_comparison(c, extracted_years, min_required_years, max_required_years, y_offset=80, chart_height=150):
+    from reportlab.graphics.charts.textlabels import Label
 
+    # Prepare data
+    extracted_years = extracted_years or 0
+    min_required_years = min_required_years or 0
+    max_required_years = max_required_years or 0
+
+    all_values = [min_required_years, extracted_years, max_required_years]
+    max_display_val = max(all_values) + 1  # Pad to prevent clipping
+
+    # Create chart
+    drawing = Drawing(400, 200)
     chart = VerticalBarChart()
     chart.x = 50
     chart.y = 50
     chart.height = chart_height
     chart.width = 300
 
-    chart.data = [[min_required_years], [extracted_years]]
+    chart.data = [[min_required_years], [extracted_years], [max_required_years]]
     chart.categoryAxis.categoryNames = ['Work Experience (Years)']
-    chart.bars[0].fillColor = colors.lightblue 
-    chart.bars[1].fillColor = colors.green     
 
+    # Normalize and set value axis
     chart.valueAxis.valueMin = 0
-    chart.valueAxis.valueMax = max(extracted_years, min_required_years or 0, max_required_years or 0) + 1
+    chart.valueAxis.valueMax = max_display_val
     chart.valueAxis.valueStep = 1
 
+    chart.barWidth = 20
+    chart.groupSpacing = 10
+
+    # Bar colors
+    chart.bars[0].fillColor = colors.lightblue      # Required Min
+    chart.bars[1].fillColor = colors.green          # Actual
+    chart.bars[2].fillColor = colors.grey           # Required Max
+
+    drawing.add(chart)
+
+    # Add a legend
     legend = Legend()
     legend.x = 370
     legend.y = 160
     legend.alignment = 'right'
     legend.colorNamePairs = [
-        (colors.lightblue, "Required Experience"),
-        (colors.green, "Your Experience")
+        (colors.lightblue, "Min Required"),
+        (colors.green, "Your Experience"),
+        (colors.grey, "Max Required")
     ]
-    drawing.add(chart)
     drawing.add(legend)
 
     drawing.drawOn(c, 100, y_offset)
 
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(100, y_offset - 20, "Experience Match Summary:")
-
     c.setFont("Helvetica", 12)
-    if extracted_years >= min_required_years and (max_required_years is None or extracted_years <= max_required_years):
-        c.drawString(100, y_offset - 40, "✅ Your experience matches the job requirement.")
+    if extracted_years >= min_required_years and (max_required_years == 0 or extracted_years <= max_required_years):
+        c.drawString(100, y_offset - 10, "✅ Your experience matches the job requirement.")
     elif extracted_years < min_required_years:
         missing = round(min_required_years - extracted_years, 1)
-        c.drawString(100, y_offset - 40, f"❌ You are missing {missing} years of experience. Consider upskilling or gaining more")
-        c.drawString(100, y_offset - 60, "industry exposure.")
+        c.drawString(100, y_offset - 10, f"❌ You are missing {missing} years of experience. Consider gaining more industry exposure.")
     else:
-        c.drawString(100, y_offset - 40, "✅ You exceed the required experience range. Well done!")
+        c.drawString(100, y_offset - 10, "✅ You exceed the maximum experience requirement. Well done!")
 
+def format_career_path_message(career_paths):
+
+    if not career_paths:
+        return "No career path suggestions available based on the extracted skills."
+
+    top_suggestions = career_paths[:3]
+
+    message = "Based on your skills and experience, here are the top career paths for you:\n"
+    for i, (career_path, score) in enumerate(top_suggestions, start=1):
+        message += f"{i}. {career_path} (Match Score: {score})\n"
+
+    return message
+
+import json
+
+def suggest_career_paths(extracted_skills, extracted_years):
+    file_path = (
+        "skills/career_paths_suggestions.json"
+        if extracted_years <= 2
+        else "skills/improvement_suggestions.json"
+    )
+
+    with open(file_path, "r") as file:
+        suggestions_data = json.load(file)
+
+    type_counts = {}
+    for category in extracted_skills:
+        for skill in extracted_skills[category]:
+            types_of_skill = get_types_of_skill(skill)
+            for skill_type in types_of_skill:
+                type_counts[skill_type] = type_counts.get(skill_type, 0) + 1
+
+    suggestions = []
+    for suggestion_title, info in suggestions_data.items():
+        required_types = info.get("types", [])
+        message = info.get("message", "")
+        match_score = sum(type_counts.get(skill_type, 0) for skill_type in required_types)
+        if match_score > 0 or "any" in required_types:
+            explanation = (
+                f"Match Score: {match_score} (we found {match_score} relevant signals in your CV). "
+                f"{message}"
+            )
+            suggestions.append((suggestion_title, match_score, explanation))
+
+    suggestions.sort(key=lambda x: x[1], reverse=True)
+    top_suggestions = [f"{title}: {explanation}" for title, _, explanation in suggestions[:3]]
+    return top_suggestions

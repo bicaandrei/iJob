@@ -505,6 +505,12 @@ const leave = (el: Element, done: () => void) => {
   visibility: hidden;
 }
 
+.empty-state {
+  text-align: center;
+  font-size: 1.25rem;
+  margin-top: 1rem;
+}
+
 @media (max-width: 1300px) {
   .filters-section {
     width: calc(50% - 1rem); /* Match the width of job cards (2 per row) */
