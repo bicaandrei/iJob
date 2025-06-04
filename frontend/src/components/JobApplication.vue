@@ -44,19 +44,49 @@
         required
       ></textarea>
 
-      <label for="cv">Upload CV:</label>
+      <div class="select-placeholder-wrapper" style="position: relative">
+        <label for="cv" class="select-label">Select or upload CV:</label>
+        <p v-if="selectPlaceholder" class="select-placeholder">
+          Select a recent CV or upload new
+        </p>
+        <select id="cv" v-model="selectedCVUrl" class="input">
+          <option
+            v-for="cvItem in recentCVs"
+            :key="cvItem.url"
+            :value="cvItem.url"
+          >
+            {{
+              cvItem.name
+                ? cvItem.name
+                : new Date(cvItem.used_at).toLocaleDateString()
+            }}
+          </option>
+          <option value="__upload_new__">Upload new CV...</option>
+        </select>
+      </div>
+
       <input
+        v-if="selectedCVUrl === '__upload_new__'"
         type="file"
-        id="cv"
+        id="cv-upload"
         @change="handleFileUpload"
         accept=".pdf"
         class="input"
+        style="margin-top: 0.5rem"
       />
 
       <div class="cv-analysis-row">
-        <button class="cv-upload-btn" @click="getCVAnalysis">
-          Obtain CV analysis
-        </button>
+        <div class="cv-upload-btn-wrapper">
+          <button class="cv-upload-btn" @click="getCVAnalysis">
+            Obtain CV analysis
+          </button>
+          <span
+            class="info-icon"
+            @click="showScoringInfo = true"
+            title="How scoring works"
+            >ℹ️</span
+          >
+        </div>
 
         <div class="cv-result-area">
           <div v-if="loadingAnalyisis" class="spinner-container-inline">
@@ -105,16 +135,56 @@
       <button class="modal-close-btn" @click="closeModal">Close</button>
     </div>
   </div>
+
+  <div v-if="showScoringInfo" class="modal-overlay">
+    <div class="modal">
+      <h2>How CV Scoring Works</h2>
+      <p>
+        CVs are scored based on how well they match the job description,
+        including relevant programming languages, certifications, frameworks,
+        tools, and experience level.
+      </p>
+      <ul class="scoring-info-list">
+        <li><strong>Certifications</strong>: Most valued (4x weight)</li>
+        <li>
+          <strong>Programming Languages</strong>: High importance (3x weight)
+        </li>
+        <li><strong>Frameworks</strong>: Moderate importance (2x weight)</li>
+        <li><strong>Tools</strong>: Least weight (1x)</li>
+      </ul>
+      <p>
+        Your CV is scanned for relevant skills in each category and scored based
+        on how many of the job's required skills it matches, with different
+        importance weights per category.
+      </p>
+      <p>
+        Additionally, your <strong>years of experience</strong> are compared to
+        the job's requirements. If your experience is lower than expected, the
+        score may be reduced.
+      </p>
+      <p>
+        If your final score is under 75%, we’ll generate a personalized report
+        with suggestions to improve your CV for this role.
+      </p>
+      <button class="modal-close-btn" @click="showScoringInfo = false">
+        Close
+      </button>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useUserStore } from "../stores/user";
 import Snackbar from "./Snackbar.vue";
 import { getErrorType, RETURN_TYPES } from "../utils/error-codes";
 import { validateEmail, validateName } from "../utils/validation-rules";
 import type { JobApplicationForm } from "../models/job-application";
-import { setJobApplicationDocument } from "../api/firestore";
+import {
+  addRecentCVToUser,
+  getRecentCVsOfUser,
+  setJobApplicationDocument,
+} from "../api/firestore";
 import { analyzeCV } from "../api/cv_analysis";
 
 const {
@@ -157,6 +227,11 @@ const cvAnalysisMessage = ref<string | null>(null);
 const cvAnalysisReportUrl = ref<string | null>(null);
 const includeCVAnalysis = ref(false);
 const showAnalysisModal = ref(false);
+const showScoringInfo = ref(false);
+const recentCVs = ref<{ url: string; used_at: string; name: string }[]>([]);
+const selectedCVUrl = ref<string | null>(null);
+const selectedCVName = ref<string | null>(null);
+const selectPlaceholder = ref<boolean>(true);
 
 const emit = defineEmits(["applicationSubmitted"]);
 
@@ -181,7 +256,27 @@ const handleFileUpload = (event: Event) => {
 };
 
 const getCVAnalysis = async () => {
-  if (!cv.value) {
+  let fileToAnalyze: File | null = null;
+
+  if (selectedCVUrl.value && selectedCVUrl.value !== "__upload_new__") {
+    try {
+      const response = await fetch(selectedCVUrl.value);
+      const blob = await response.blob();
+      const cvItem = recentCVs.value.find(
+        (cv) => cv.url === selectedCVUrl.value
+      );
+      const fileName = cvItem?.name || "cv.pdf";
+      fileToAnalyze = new File([blob], fileName, { type: blob.type });
+    } catch (error) {
+      console.log("Error fetching CV:", error);
+      displayError(RETURN_TYPES.APPLICATION_CV_REQUIRED);
+      return false;
+    }
+  } else if (cv.value) {
+    fileToAnalyze = cv.value;
+  }
+
+  if (!fileToAnalyze) {
     displayError(RETURN_TYPES.APPLICATION_CV_REQUIRED);
     return false;
   }
@@ -197,7 +292,7 @@ const getCVAnalysis = async () => {
 
   try {
     const score = await analyzeCV(
-      cv.value,
+      fileToAnalyze,
       jobSkills,
       job_experience || "",
       job_title || ""
@@ -220,9 +315,24 @@ const getCVAnalysis = async () => {
 };
 
 const sendApplication = async () => {
-  console.log(includeCVAnalysis.value);
-
   if (!validateForm()) return;
+
+  let cvToUse: File | string | null = null;
+  let cvNameToUse: string | null = null;
+  if (selectedCVUrl.value && selectedCVUrl.value !== "__upload_new__") {
+    cvToUse = selectedCVUrl.value;
+    cvNameToUse = selectedCVName.value;
+  } else if (cv.value) {
+    cvToUse = cv.value;
+    cvNameToUse = cv.value.name;
+  }
+
+  if (!cvToUse) {
+    displayError(RETURN_TYPES.APPLICATION_CV_REQUIRED);
+    return;
+  }
+
+  console.log(cvNameToUse);
 
   const JobApplicationForm: JobApplicationForm = {
     applicant_id: user.google_uid,
@@ -232,17 +342,19 @@ const sendApplication = async () => {
     email: email.value,
     telephone: user.telephone,
     experience: experience.value || 0,
-    cv: cv.value,
+    cv: cvToUse,
     suitability: suitability.value,
     applicant_profile_pic: user.profile_pic,
     analysis_score: includeCVAnalysis.value ? cvScore.value : null,
   };
 
-  const return_type: RETURN_TYPES = await setJobApplicationDocument(
+  const downloadCVUrl: string | null = await setJobApplicationDocument(
     JobApplicationForm
   );
 
-  if (return_type === RETURN_TYPES.SUCCESS) {
+  if (downloadCVUrl) {
+    await addRecentCVToUser(user.google_uid, downloadCVUrl, cvNameToUse || "");
+
     console.log("Application sent successfully!");
     snackbarRef.value?.showSnackbar(
       "Job application successfully sent!",
@@ -253,7 +365,7 @@ const sendApplication = async () => {
       emit("applicationSubmitted");
     }, 2000);
   } else {
-    displayError(return_type);
+    displayError(RETURN_TYPES.JOB_APPLICATION_FAILED);
   }
 };
 
@@ -278,7 +390,10 @@ const validateForm = (): boolean => {
     return false;
   }
 
-  if (!cv.value) {
+  if (
+    (!selectedCVUrl.value || selectedCVUrl.value === "__upload_new__") &&
+    !cv.value
+  ) {
     displayError(RETURN_TYPES.APPLICATION_CV_REQUIRED);
     return false;
   }
@@ -289,6 +404,25 @@ const validateForm = (): boolean => {
 const displayError = (error_type: RETURN_TYPES) => {
   snackbarRef.value?.showSnackbar(getErrorType(error_type), "error");
 };
+
+watch(selectedCVUrl, (newVal) => {
+  cvScore.value = null;
+  selectPlaceholder.value = false;
+  if (newVal && newVal !== "__upload_new__") {
+    const cvItem = recentCVs.value.find((cv) => cv.url === newVal);
+    selectedCVName.value = cvItem?.name || null;
+  } else if (newVal === "__upload_new__") {
+    selectedCVName.value = null;
+  } else {
+    selectedCVName.value = null;
+  }
+});
+
+onMounted(async () => {
+  if (user.google_uid) {
+    recentCVs.value = await getRecentCVsOfUser(user.google_uid);
+  }
+});
 </script>
 
 <style scoped>
@@ -564,6 +698,83 @@ textarea::placeholder {
   height: 1.2rem;
   cursor: pointer; /* Add pointer cursor for better UX */
   accent-color: #00a880;
+}
+
+.cv-upload-btn-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 2rem;
+}
+
+.info-icon {
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #00a880;
+  transition: color 0.3s;
+}
+
+.info-icon:hover {
+  color: #007f66;
+}
+
+.info-icon {
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: #00a880;
+}
+
+.info-icon:hover {
+  color: #008b6d;
+}
+
+.scoring-info-list {
+  text-align: left;
+  margin: 1rem 0;
+  padding-left: 1.25rem;
+  list-style-type: disc;
+}
+
+.scoring-info-list li {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.select-placeholder-wrapper {
+  position: relative;
+  width: 100%;
+  min-width: 200px;
+}
+
+.select-placeholder-wrapper .input,
+.select-placeholder-wrapper select {
+  width: 100%;
+}
+
+.select-placeholder {
+  position: absolute;
+  left: 16px;
+  top: 27px;
+  background: #fff;
+  padding: 0 4px;
+  color: #aaa;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 2;
+  transition: 0.2s;
+}
+
+.select-label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: bold;
+  color: #333;
+  font-size: 1rem;
+}
+
+.input:focus + .select-placeholder,
+.input:not([value=""]):not(:placeholder-shown) + .select-placeholder {
+  color: #00c49a;
 }
 
 @media (max-width: 1300px) {

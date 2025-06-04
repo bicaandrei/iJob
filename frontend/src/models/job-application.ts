@@ -7,7 +7,7 @@ interface JobApplicationForm {
   telephone: string;
   experience: number;
   suitability: string;
-  cv: File | null;
+  cv: File | string | null;
   applicant_profile_pic: string | null;
   analysis_score: number | null;
 }
@@ -32,6 +32,7 @@ interface JobApplication {
 interface UserJobApplication {
   id: string;
   job_title: string;
+  job_position: "Intern" | "Junior" | "Middle" | "Senior" | "";
   firm_name: string;
   created_at: Date;
   status?: "Sent" | "Seen";

@@ -97,6 +97,12 @@ h3 {
   margin-bottom: 0.5rem;
 }
 
+.filter-score-container input[type="text"]:focus {
+  border-color: #00c49a;
+  outline: none;
+  background-color: #fff;
+}
+
 input[type="text"] {
   padding: 0.5rem;
   border: 1px solid #ccc;
@@ -104,10 +110,17 @@ input[type="text"] {
   font-size: 1rem;
 }
 
+input[type="text"]:focus {
+  border-color: #00c49a;
+  outline: none;
+  background-color: #fff;
+}
+
 .radio-group {
   display: flex;
   align-items: center;
   margin-bottom: 0.5rem;
+  accent-color: #00a880;
 }
 
 .radio-group label {
@@ -123,7 +136,7 @@ input[type="text"] {
 
 .remove-filters-button {
   padding: 0.75rem 1.5rem;
-  background-color: #007bff;
+  background-color: #00c49a;
   color: white;
   border: none;
   border-radius: 4px;
@@ -132,7 +145,7 @@ input[type="text"] {
 }
 
 .remove-filters-button:hover {
-  background-color: #0056b3;
+  background-color: #00a880;
 }
 
 .filter-score-container {
@@ -146,5 +159,20 @@ input[type="text"] {
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
+}
+
+@media (max-width: 600px) {
+  .filters-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .button-container {
+    grid-column: span 1;
+  }
+
+  .filter-score-container input[type="text"] {
+    width: 85%;
+  }
 }
 </style>

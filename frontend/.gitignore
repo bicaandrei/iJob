@@ -25,3 +25,7 @@ dist-ssr
 
 # ENV
 .env
+
+# tests
+test-results/
+tests/

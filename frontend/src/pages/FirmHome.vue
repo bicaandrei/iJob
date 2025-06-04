@@ -177,6 +177,7 @@ onMounted(async () => {
   padding: 1rem 2rem;
   max-width: 1300px; /* Limit the width */
   margin: 0 auto; /* Center horizontally */
+  z-index: 1;
 }
 
 .page-title {

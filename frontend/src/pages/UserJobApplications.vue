@@ -8,7 +8,9 @@
         :key="application.id"
         class="job-application-card"
       >
-        <h2 class="job-title">{{ application.job_title }}</h2>
+        <h2 class="job-title">
+          {{ application.job_title + " (" + application.job_position + ")" }}
+        </h2>
         <p class="firm-name">
           <strong>Company:</strong> {{ application.firm_name }}
         </p>
@@ -26,6 +28,17 @@
     <p v-else-if="isLoading">Loading job applications...</p>
     <p v-else>No job applications found.</p>
   </div>
+
+  <img
+    class="bottom-left-illustration"
+    :src="cvIllustration"
+    alt="Dashboard Illustration"
+  />
+  <img
+    class="bottom-right-illustration"
+    :src="jobApplicationIllustration"
+    alt="CV Analysis Illustration"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -34,6 +47,8 @@ import type { UserJobApplication } from "../models/job-application";
 import type { QueryDocumentSnapshot } from "firebase/firestore";
 import { getUserJobApplicationsById } from "../api/firestore";
 import { useUserStore } from "../stores/user";
+import cvIllustration from "../assets/cv_illustration.jpg";
+import jobApplicationIllustration from "../assets/job_application_illustration.png";
 
 const jobApplications = ref<UserJobApplication[]>([]);
 const lastVisibleApplication = ref<QueryDocumentSnapshot | null>(null);
@@ -119,5 +134,31 @@ onMounted(async () => {
 
 .observer {
   height: 1px;
+}
+
+.bottom-left-illustration,
+.bottom-right-illustration {
+  position: fixed;
+  bottom: -100px;
+  width: 25%;
+  z-index: -1;
+  pointer-events: none;
+  transform: rotate(-45deg); /* angle */
+}
+
+.bottom-right-illustration {
+  right: -100px;
+}
+
+.bottom-left-illustration {
+  left: -100px;
+  transform: rotate(45deg); /* mirrored angle */
+}
+
+@media (max-width: 768px) {
+  .bottom-left-illustration,
+  .bottom-right-illustration {
+    display: none;
+  }
 }
 </style>

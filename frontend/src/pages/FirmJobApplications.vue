@@ -1,4 +1,5 @@
 <template>
+  <Snackbar ref="snackbarRef" />
   <div class="applications-container">
     <h1 class="page-title">Job Applications ({{ applications?.length }})</h1>
 
@@ -61,25 +62,33 @@
             </span>
           </p>
         </div>
-        <button
-          v-if="application.cv"
-          class="download-cv-btn"
-          @click="downloadCV(application.id, application.cv)"
-        >
-          View CV
-        </button>
-        <button
-          class="view-contact-details-btn"
-          @click="
-            showContactDetails(
-              application.name,
-              application.email,
-              application.telephone
-            )
-          "
-        >
-          View contact details
-        </button>
+        <div class="application-actions">
+          <button
+            v-if="application.cv"
+            class="download-cv-btn"
+            @click="downloadCV(application.id, application.cv)"
+          >
+            View CV
+          </button>
+          <button
+            class="view-contact-details-btn"
+            @click="
+              showContactDetails(
+                application.name,
+                application.email,
+                application.telephone
+              )
+            "
+          >
+            View contact details
+          </button>
+          <button
+            class="delete-application-btn"
+            @click="deleteApplication(application.id)"
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -98,6 +107,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import {
+  deleteJobApplicationById,
   getJobApplicationsByJobId,
   setJobApplicationStatusToSeen,
 } from "../api/firestore"; // Replace with the actual path to your API function
@@ -105,6 +115,8 @@ import type { JobApplication } from "../models/job-application";
 import { Timestamp } from "firebase/firestore";
 import ApplicantsFilter from "../components/ApplicantsFilter.vue";
 import defaultProfilePicture from "../assets/default_profile_picture.png";
+import Snackbar from "../components/Snackbar.vue"; // Import the Snackbar component
+import { getErrorType, RETURN_TYPES } from "../utils/error-codes";
 
 const route = useRoute();
 const jobId = route.params.id as string;
@@ -115,6 +127,7 @@ const showAnalysisModal = ref(false);
 const applicantName = ref("");
 const applicantEmail = ref("");
 const applicantTelephone = ref("");
+const snackbarRef = ref<InstanceType<typeof Snackbar> | null>(null);
 
 const fetchApplications = async () => {
   try {
@@ -149,6 +162,24 @@ const showContactDetails = (name: string, email: string, telephone: string) => {
 
 const closeModal = () => {
   showAnalysisModal.value = false;
+};
+
+const deleteApplication = async (applicationId: string) => {
+  if (confirm("Are you sure you want to delete this application?")) {
+    console.log("Deleting application with ID:", applicationId);
+    const response: RETURN_TYPES = await deleteJobApplicationById(
+      applicationId
+    );
+    if (response === RETURN_TYPES.SUCCESS) {
+      fetchApplications();
+      snackbarRef.value?.showSnackbar(
+        "Application deleted successfully",
+        "success"
+      );
+    } else {
+      displayError(response);
+    }
+  }
 };
 
 const filters = ref({
@@ -215,6 +246,10 @@ const filteredApplications = computed(() => {
     return true;
   });
 });
+
+const displayError = (error_type: RETURN_TYPES) => {
+  snackbarRef.value?.showSnackbar(getErrorType(error_type), "error");
+};
 
 onMounted(() => {
   fetchApplications();
@@ -294,7 +329,7 @@ onMounted(() => {
 .download-cv-btn {
   margin-top: 1rem;
   padding: 0.5rem 1rem;
-  background-color: #007bff;
+  background-color: #00c49a;
   color: white;
   border: none;
   border-radius: 4px;
@@ -303,13 +338,13 @@ onMounted(() => {
 }
 
 .download-cv-btn:hover {
-  background-color: #0056b3;
+  background-color: #00a880;
 }
 
 .view-contact-details-btn {
   margin: 1rem 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: #28a745;
+  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
@@ -318,7 +353,7 @@ onMounted(() => {
 }
 
 .view-contact-details-btn:hover {
-  background-color: #298d3f;
+  background-color: #0056b3;
 }
 
 .applicant-profile-pic-container {
@@ -377,21 +412,6 @@ onMounted(() => {
   margin-bottom: 1.5rem;
 }
 
-.modal-btn {
-  background-color: #007bff;
-  color: #fff;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  margin-right: 1rem;
-}
-
-.modal-btn:hover {
-  background-color: #0056b3;
-}
-
 .modal-close-btn {
   background-color: #ccc;
   color: #333;
@@ -404,5 +424,56 @@ onMounted(() => {
 
 .modal-close-btn:hover {
   background-color: #aaa;
+}
+
+.delete-application-btn {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  margin: 1rem 0rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.2s;
+}
+.delete-application-btn:hover {
+  background-color: #b91c1c;
+}
+
+@media (max-width: 600px) {
+  .application-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .view-contact-details-btn {
+    margin: 0.5rem 0rem;
+    margin-left: 0.5rem;
+  }
+  .delete-application-btn {
+    position: static;
+    margin: 0 0;
+    width: 92px;
+  }
+}
+
+@media (max-width: 400px) {
+  .application-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .view-contact-details-btn {
+    margin: 0.5rem 0rem;
+    margin-left: 0.5rem;
+  }
+  .delete-application-btn {
+    position: static;
+    margin: 0 0;
+    width: 92px;
+  }
 }
 </style>

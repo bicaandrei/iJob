@@ -7,6 +7,7 @@ import {
   where,
   getDocs,
   deleteDoc,
+  updateDoc,
   orderBy,
   startAfter,
   limit,
@@ -27,6 +28,8 @@ const firestoreCollectionsConfig = {
   user_collection: import.meta.env.VITE_FIRESTORE_USER_COLLECTION,
   firm_collection: import.meta.env.VITE_FIRESTORE_FIRM_COLLECTION,
   job_ads_collection: import.meta.env.VITE_FIRESTORE_ADS_COLLECTION,
+  skills_collection: import.meta.env.VITE_FIRESTORE_SKILLS_COLLECTION,
+  cities_collection: import.meta.env.VITE_FIRESTORE_CITIES_COLLECTION,
   job_applications_collection: import.meta.env
     .VITE_FIRESTORE_APPLICATIONS_COLLECTION,
 };
@@ -360,15 +363,23 @@ const getAllJobsWithPagination = async (
 
 const setJobApplicationDocument = async (
   job_application_form: JobApplicationForm
-): Promise<RETURN_TYPES> => {
+): Promise<string | null> => {
   try {
     const application_id = generateUniqueJobApplicationId();
+    let downloadUrl: string | null = null;
+
     if (job_application_form.cv) {
-      const downloadUrl = await uploadFileToStorage(
-        job_application_form.cv,
-        application_id,
-        import.meta.env.VITE_FIREBASE_STORAGE_JOB_APPLICATIONS_CVS
-      );
+      if (typeof job_application_form.cv === "string") {
+        // It's already a URL
+        downloadUrl = job_application_form.cv;
+      } else {
+        // It's a File, upload it
+        downloadUrl = await uploadFileToStorage(
+          job_application_form.cv,
+          application_id,
+          import.meta.env.VITE_FIREBASE_STORAGE_JOB_APPLICATIONS_CVS
+        );
+      }
 
       const job_application: JobApplication = {
         id: application_id,
@@ -395,13 +406,13 @@ const setJobApplicationDocument = async (
 
       await setDoc(jobApplicationRef, job_application);
 
-      return RETURN_TYPES.SUCCESS;
+      return downloadUrl;
     } else {
-      return RETURN_TYPES.APPLICATION_CV_REQUIRED;
+      return null;
     }
   } catch (error: any) {
     console.error("Error saving job application");
-    return RETURN_TYPES.JOB_APPLICATION_FAILED;
+    return null;
   }
 };
 
@@ -509,6 +520,9 @@ const getUserJobApplicationsById = async (
         const jobTitle = jobSnap.exists()
           ? jobSnap.data().title
           : "Unknown Job";
+        const jobPosition = jobSnap.exists()
+          ? jobSnap.data().position
+          : "Unknown Position";
 
         const firmRef = doc(
           db,
@@ -523,6 +537,7 @@ const getUserJobApplicationsById = async (
         return {
           id: queryDoc.id,
           job_title: jobTitle,
+          job_position: jobPosition,
           firm_name: firmName,
           created_at: data.created_at.toDate(),
           status: data.status,
@@ -661,7 +676,10 @@ const searchSkills = async (
   searchTerm: string,
   category: string
 ): Promise<string[]> => {
-  const skillsRef = collection(db, "skills");
+  const skillsRef = collection(
+    db,
+    firestoreCollectionsConfig.skills_collection
+  );
 
   const q = query(
     skillsRef,
@@ -672,6 +690,108 @@ const searchSkills = async (
 
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map((doc) => doc.data().name);
+};
+
+const searchLocation = async (searchTerm: string): Promise<string[]> => {
+  const citiesRef = collection(
+    db,
+    firestoreCollectionsConfig.cities_collection
+  );
+
+  const querySnapshot = await getDocs(citiesRef);
+  return querySnapshot.docs
+    .map((doc) => doc.id)
+    .filter((id) => id.toLowerCase().includes(searchTerm.toLowerCase()));
+};
+
+const searchSkill = async (searchTerm: string): Promise<string[]> => {
+  const skillsRef = collection(
+    db,
+    firestoreCollectionsConfig.skills_collection
+  );
+
+  const querySnapshot = await getDocs(skillsRef);
+  return querySnapshot.docs
+    .map((doc) => doc.id)
+    .filter((id) => id.toLowerCase().includes(searchTerm.toLowerCase()));
+};
+
+const addRecentCVToUser = async (
+  userId: string,
+  cvUrl: string,
+  fileName?: string
+) => {
+  type RecentCV = {
+    url: string;
+    used_at: string;
+    name: string;
+  };
+
+  try {
+    const userRef = doc(db, firestoreCollectionsConfig.user_collection, userId);
+
+    const userSnap = await getDoc(userRef);
+    let recentCVs: RecentCV[] = [];
+    if (userSnap.exists()) {
+      recentCVs = userSnap.data().recent_cvs || [];
+    }
+
+    const alreadyExists = recentCVs.some((cv) => cv.name === fileName);
+    console.log(`Already exists: ${alreadyExists}`);
+
+    if (!alreadyExists) {
+      recentCVs.push({
+        url: cvUrl,
+        used_at: new Date().toISOString(),
+        name: fileName || "CV",
+      });
+
+      if (recentCVs.length > 5) {
+        recentCVs = recentCVs.slice(-5);
+      }
+
+      await updateDoc(userRef, {
+        recent_cvs: recentCVs,
+      });
+    }
+  } catch (error) {
+    console.error("Error updating recent CVs for user:", error);
+    throw error;
+  }
+};
+
+const getRecentCVsOfUser = async (
+  userId: string
+): Promise<{ url: string; used_at: string; name: string }[]> => {
+  try {
+    const userRef = doc(db, firestoreCollectionsConfig.user_collection, userId);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      return userSnap.data().recent_cvs || [];
+    } else {
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching recent CVs for user:", error);
+    return [];
+  }
+};
+
+const deleteJobApplicationById = async (
+  applicationId: string
+): Promise<RETURN_TYPES> => {
+  try {
+    const applicationRef = doc(
+      db,
+      firestoreCollectionsConfig.job_applications_collection,
+      applicationId
+    );
+    await deleteDoc(applicationRef);
+    return RETURN_TYPES.SUCCESS;
+  } catch (error) {
+    console.error("Error deleting job application:", error);
+    return RETURN_TYPES.APPLICATION_DELETE_FAILED;
+  }
 };
 
 export {
@@ -693,4 +813,9 @@ export {
   editUserDocument,
   editFirmAccount,
   searchSkills,
+  searchLocation,
+  searchSkill,
+  addRecentCVToUser,
+  getRecentCVsOfUser,
+  deleteJobApplicationById,
 };

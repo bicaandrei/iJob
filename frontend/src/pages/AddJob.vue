@@ -31,17 +31,29 @@
         class="input"
       />
 
-      <input
-        v-model="job.location"
-        type="text"
-        placeholder="Location*"
-        class="input"
-      />
+      <div class="location-search-wrapper">
+        <input
+          v-model="searchedLocation"
+          @input="debouncedLocationSearch"
+          type="text"
+          placeholder="Search location*"
+          class="input"
+        />
+        <ul v-if="locationResults.length" class="search-results">
+          <li
+            v-for="(result, index) in locationResults"
+            :key="index"
+            @click="selectLocation(result)"
+          >
+            {{ result }}
+          </li>
+        </ul>
+      </div>
 
       <div class="skill-search-wrapper">
         <input
           v-model="searchedProgrammingLanguage"
-          @input="debouncedSearch('programming_language')"
+          @input="debouncedSkillSearch('programming_language')"
           type="text"
           placeholder="Search required programming languages"
           class="input"
@@ -69,7 +81,7 @@
       <div class="skill-search-wrapper">
         <input
           v-model="searchedFramework"
-          @input="debouncedSearch('framework')"
+          @input="debouncedSkillSearch('framework')"
           type="text"
           placeholder="Search required frameworks"
           class="input"
@@ -95,7 +107,7 @@
       <div class="skill-search-wrapper">
         <input
           v-model="searchedCertification"
-          @input="debouncedSearch('certification')"
+          @input="debouncedSkillSearch('certification')"
           type="text"
           placeholder="Search required certifications"
           class="input"
@@ -121,7 +133,7 @@
       <div class="skill-search-wrapper">
         <input
           v-model="searchedTool"
-          @input="debouncedSearch('tool')"
+          @input="debouncedSkillSearch('tool')"
           type="text"
           placeholder="Search required tools"
           class="input"
@@ -166,7 +178,11 @@ import { type JobForm } from "../models/job";
 import { validateRequiredExperience } from "../utils/validation-rules";
 import { RETURN_TYPES, getErrorType } from "../utils/error-codes";
 import Snackbar from "../components/Snackbar.vue";
-import { searchSkills, setJobAdDocument } from "../api/firestore";
+import {
+  searchSkills,
+  searchLocation,
+  setJobAdDocument,
+} from "../api/firestore";
 import { useAuth } from "../api/authentication";
 import { useJobStore } from "../stores/job";
 import { debounce } from "../utils/debounce";
@@ -193,12 +209,15 @@ const searchedProgrammingLanguage = ref("");
 const searchedFramework = ref("");
 const searchedCertification = ref("");
 const searchedTool = ref("");
+const searchedLocation = ref("");
+
 const programmingLanguageResults = ref<string[]>([]);
 const frameworkResults = ref<string[]>([]);
 const certificationResults = ref<string[]>([]);
 const toolResults = ref<string[]>([]);
+const locationResults = ref<string[]>([]);
 
-const debouncedSearch = debounce(async (category: string) => {
+const debouncedSkillSearch = debounce(async (category: string) => {
   let query = "";
   if (category === "programming_language") {
     query = searchedProgrammingLanguage.value;
@@ -233,6 +252,21 @@ const debouncedSearch = debounce(async (category: string) => {
     }
   }
 }, 300);
+
+const debouncedLocationSearch = debounce(async () => {
+  const query = searchedLocation.value;
+  if (query.trim()) {
+    locationResults.value = await searchLocation(query);
+  } else {
+    locationResults.value = [];
+  }
+}, 300);
+
+const selectLocation = (location: string) => {
+  job.value.location = location;
+  searchedLocation.value = location;
+  locationResults.value = [];
+};
 
 const addSkill = (
   skill: string,
@@ -493,5 +527,15 @@ const displayError = (error_type: RETURN_TYPES) => {
   height: 1.2rem;
   cursor: pointer; /* Add pointer cursor for better UX */
   accent-color: #00a880;
+}
+
+.location-search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.location-search-wrapper .input {
+  width: 95%;
+  padding: 0.75rem 0.65rem;
 }
 </style>
