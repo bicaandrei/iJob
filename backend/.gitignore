@@ -5,3 +5,9 @@ requirements.prod.txt
 firebase-key.json
 skills/
 cv_report.pdf
+app/services/__pycache__/
+app/routes/__pycache__/
+app/__pycache__/
+app/controllers/__pycache__/
+app/db/__pycache__/
+cv_report.pdf
