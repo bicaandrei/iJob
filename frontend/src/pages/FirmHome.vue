@@ -216,6 +216,14 @@ onMounted(async () => {
   gap: 1rem;
 }
 
+.job-description {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 1rem;
+  word-break: break-word; /* Ensures long words/URLs break */
+  white-space: pre-line;
+}
+
 .job-title {
   font-size: 1.5rem;
   font-weight: 600;

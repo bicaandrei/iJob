@@ -244,9 +244,9 @@ p {
 }
 
 .cv-analysis h2 {
-  font-size: 2.4rem;
+  font-size: 2rem;
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .cv-analysis p {
@@ -293,6 +293,7 @@ p {
   }
 
   .hero-text {
+    margin-top: -30px;
     max-width: 100%;
     text-align: center;
   }
@@ -302,7 +303,7 @@ p {
   }
 
   .cta-button {
-    margin-top: 20px;
+    margin-top: 15px;
   }
 
   .cv-analysis {
@@ -314,12 +315,13 @@ p {
 
   .cv-analysis-text {
     max-width: 100%;
-    margin-top: 20px;
+    margin-top: -30px;
     text-align: center;
   }
 
   .cv-analysis-illustration {
     max-width: 100%;
+    margin-top: -60px;
   }
 }
 </style>

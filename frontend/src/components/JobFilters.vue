@@ -341,6 +341,7 @@ input[type="text"]:focus {
 
 .remove-filters-button {
   padding: 0.75rem 1.5rem;
+  margin-bottom: 1rem;
   background-color: #00c49a;
   color: #fff;
   border: none;

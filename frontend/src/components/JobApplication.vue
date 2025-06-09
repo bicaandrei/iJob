@@ -452,21 +452,40 @@ onMounted(async () => {
 
 .modal {
   background: #fff;
-  padding: 2rem;
+  font-size: 0.97rem;
+  padding: 0.75rem 1rem;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   text-align: center;
   width: 300px;
+  max-height: 90%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .modal h2 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 1.15rem;
+  margin-bottom: 0.75rem;
+  word-break: break-word;
 }
 
 .modal p {
-  font-size: 1rem;
-  margin-bottom: 1.5rem;
+  font-size: 0.97rem;
+  margin-bottom: 1rem;
+  word-break: break-word;
+}
+
+.scoring-info-list {
+  margin: 0.5rem 0 0.5rem 1rem;
+  padding-left: 1.1rem;
+}
+
+.scoring-info-list li {
+  margin-bottom: 0.35rem;
+  font-size: 0.97rem;
+  word-break: break-word;
 }
 
 .modal-btn {
@@ -488,6 +507,8 @@ onMounted(async () => {
   background-color: #ccc;
   color: #333;
   padding: 0.75rem 1.5rem;
+  width: 46%;
+  margin: 0 auto;
   border: none;
   border-radius: 8px;
   cursor: pointer;

@@ -48,7 +48,7 @@ defineExpose({ showSnackbar });
   z-index: 1000; /* Ensure it appears above other elements */
 }
 .success {
-  background-color: #4caf50;
+  background-color: #00c49a;
 }
 .error {
   background-color: #f44336;

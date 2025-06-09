@@ -206,6 +206,14 @@ onMounted(async () => {
   color: #00c49a;
 }
 
+.job-description {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 1rem;
+  word-break: break-word; /* Ensures long words/URLs break */
+  white-space: pre-line;
+}
+
 .job-info {
   display: flex;
   flex-direction: column;
