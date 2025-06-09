@@ -7,7 +7,7 @@ def firebase_auth_required(f):
     def decorated_function(*args, **kwargs):
 
         if request.method == "OPTIONS":
-            return f(*args, **kwargs)
+            return '', 200
 
         auth_header = request.headers.get("Authorization", None)
 

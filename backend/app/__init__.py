@@ -11,7 +11,10 @@ def create_app():
 
     app = Flask(__name__)
 
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+    CORS(app, resources={r"/api/*": {"origins": [
+         "http://localhost:5173",
+         "http://192.168.100.42:5173"
+     ]}}, supports_credentials=True)
 
     main_bp = Blueprint('main', __name__, url_prefix='/api')
     main_bp.register_blueprint(cv_bp)

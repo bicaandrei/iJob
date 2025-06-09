@@ -10,4 +10,5 @@ app/routes/__pycache__/
 app/__pycache__/
 app/controllers/__pycache__/
 app/db/__pycache__/
+app/utils/__pycache__/
 cv_report.pdf
