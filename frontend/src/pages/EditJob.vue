@@ -428,6 +428,7 @@ onMounted(() => {
 }
 
 .form-container {
+  width: 75%;
   max-width: 400px;
   margin: 80px auto;
   padding: 2rem;

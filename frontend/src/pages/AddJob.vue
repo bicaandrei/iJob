@@ -415,8 +415,9 @@ const displayError = (error_type: RETURN_TYPES) => {
 }
 
 .form-container {
+  width: 75%;
   max-width: 400px;
-  margin: 80px auto;
+  margin: 50px auto;
   padding: 2rem;
   border: 1px solid #e0e0e0;
   border-radius: 12px;

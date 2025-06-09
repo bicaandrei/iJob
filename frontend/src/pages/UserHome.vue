@@ -338,7 +338,7 @@ const leave = (el: Element, done: () => void) => {
 }
 
 .filters-wrapper {
-  width: 85%;
+  width: 93%;
   max-width: 700px;
   background: white;
   border-radius: 0.375rem;
@@ -358,7 +358,7 @@ const leave = (el: Element, done: () => void) => {
 }
 
 .filters-panel {
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 .jobs-section {
@@ -437,19 +437,18 @@ const leave = (el: Element, done: () => void) => {
   font-size: 1rem;
   color: #555;
   margin-bottom: 1rem;
+  word-break: break-word; /* Ensures long words/URLs break */
+  white-space: pre-line;
 }
 
 .job-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  display: block;
   margin-bottom: 1rem;
 }
 
 .job-details p {
   font-size: 0.9rem;
   color: #666;
-  margin: 0;
 }
 
 .job-details .label {

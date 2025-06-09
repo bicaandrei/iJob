@@ -26,7 +26,7 @@
     </div>
 
     <p v-else-if="isLoading">Loading job applications...</p>
-    <p v-else>No job applications found.</p>
+    <p v-else style="text-align: center">No job applications found.</p>
   </div>
 
   <img
@@ -99,6 +99,13 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.job-applications-container h1 {
+  text-align: center;
+  color: black; /* Updated color */
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+}
+
 .job-applications-container {
   max-width: 800px;
   margin: 0 auto;
