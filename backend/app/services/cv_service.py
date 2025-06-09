@@ -182,7 +182,7 @@ def calculate_cv_score(cv, job_requirements, job_required_experience, job_title)
             total_weighted_matched_skills += matched_skills * category_weight
 
     if total_weighted_required_skills == 0:
-        skill_score = 0
+        skill_score = 100
     else:
         skill_score = (total_weighted_matched_skills / total_weighted_required_skills) * 100
 
@@ -214,12 +214,13 @@ def calculate_cv_score(cv, job_requirements, job_required_experience, job_title)
 
         try:
             generate_cv_report(final_score, job_title, extract_candidate_name(cv), extracted_skills, job_requirements, extracted_experience_years, min_required_years, max_required_years)
-            unique_id = str(uuid.uuid4())
-            bucket_name = os.getenv("FLASK_FIREBASE_STORAGE_BUCKET")
-            folder_name = os.getenv("FLASK_FIREBASE_STORAGE_REPORTS_FOLDER", "cv_reports")
-            blob_name = f"{folder_name}/{unique_id}.pdf"
-            url = upload_to_google_storage("cv_report.pdf", bucket_name, blob_name)
-            return final_score, message, url
+            # unique_id = str(uuid.uuid4())
+            # bucket_name = os.getenv("FLASK_FIREBASE_STORAGE_BUCKET")
+            # folder_name = os.getenv("FLASK_FIREBASE_STORAGE_REPORTS_FOLDER", "cv_reports")
+            # blob_name = f"{folder_name}/{unique_id}.pdf"
+            # url = upload_to_google_storage("cv_report.pdf", bucket_name, blob_name)
+            #return final_score, message, url
+            return "", "", ""
         except Exception as e:
             print(f"Error uploading CV report to GCS: {e}")
 
@@ -297,7 +298,9 @@ def generate_cv_report(score, job_title, candidate_name, extracted_skills, job_r
     chart.categoryAxis.labels.dy = -15
 
     chart.valueAxis.valueMin = 0
-    chart.valueAxis.valueMax = max(required + matched) + 1
+    all_values = required + matched
+    all_values = required + matched
+    chart.valueAxis.valueMax = (max(all_values) + 1) if all_values else 1
     chart.valueAxis.valueStep = 1
 
     drawing.add(chart)
@@ -321,8 +324,15 @@ def generate_cv_report(score, job_title, candidate_name, extracted_skills, job_r
 
     c.setFont("Helvetica", 12)
     all_required_skills = [skill.title() for skills in job_requirements.values() for skill in skills]
-    c.drawString(110, y_skills_text, f"• {', '.join(all_required_skills)}")
-    y_skills_text -= 30
+    if sum(required) != 0:
+        chunk_size = 7
+        for i in range(0, len(all_required_skills), chunk_size):
+            skills_chunk = all_required_skills[i:i+chunk_size]
+            c.drawString(110, y_skills_text, f"• {', '.join(skills_chunk)}")
+            y_skills_text -= 18  # Move to next line for each chunk
+    else:
+        c.drawString(110, y_skills_text, "• No required skills specified for this job.")
+    y_skills_text -= 20
 
     # Print Matched Skills
     c.setFont("Helvetica-Bold", 14)
@@ -334,9 +344,16 @@ def generate_cv_report(score, job_title, candidate_name, extracted_skills, job_r
     for category, skills in extracted_skills.items():
         matched_skills.update(set(skills) & set(job_requirements.get(category, [])))
 
-    capitalized_matched_skills = [skill.title() for skill in matched_skills]
-    c.drawString(110, y_skills_text, f"• {', '.join(capitalized_matched_skills)}")
-    y_skills_text -= 50
+    if len(matched_skills) != 0:
+        capitalized_matched_skills = [skill.title() for skill in matched_skills]
+        chunk_size = 7
+        for i in range(0, len(capitalized_matched_skills), chunk_size):
+            skills_chunk = capitalized_matched_skills[i:i+chunk_size]
+            c.drawString(110, y_skills_text, f"• {', '.join(skills_chunk)}")
+            y_skills_text -= 18  # Move to next line for each chunk
+    else:
+        c.drawString(110, y_skills_text, "• No skills matched with the job requirements.")
+    y_skills_text -= 30
 
     c.setFont("Helvetica-Bold", 16)
     c.drawString(100, y_skills_text, "Experience Match Summary")

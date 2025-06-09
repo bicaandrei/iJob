@@ -6,10 +6,6 @@ from app.utils.auth_decorator import firebase_auth_required
 @firebase_auth_required
 def upload_cv():
 
-    print("Received request to upload CV")
-
-    print("Received CV upload request")
-
     file = request.files['file']
     job_requirements = request.form.get('job_requirements')
     job_required_experience = request.form.get('job_required_experience')
@@ -27,17 +23,10 @@ def upload_cv():
         for key, value in job_requirements.items()
     }
 
-    print(f"Job requirements received: {job_requirements}")
-
     if file.filename.endswith('.pdf'):
         text = extract_text_from_pdf(file)
     else:
         return jsonify({"error": "Invalid file format. Only PDF files are allowed."}), 400
-
-    print(f"Extracted text from CV: {text[:500]}...")  # Log the first 500 characters of the extracted text
-    print(f"Job requirements: {job_requirements}")
-    print(f"Job required experience: {job_required_experience}")
-    print(f"Job title: {job_title}")
 
     score, message, report_url = calculate_cv_score(text, job_requirements, job_required_experience, job_title)
     return jsonify({"score": score, "message": message, "cv_report_url": report_url}), 200

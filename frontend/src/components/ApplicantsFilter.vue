@@ -84,6 +84,7 @@ watch(
 
 .filter-applicants-title {
   text-align: center;
+  color: #00c49a;
 }
 
 .filter-group {
