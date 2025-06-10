@@ -14,6 +14,7 @@ import EditJob from "./pages/EditJob.vue";
 import JobDetails from "./pages/JobDetails.vue";
 import UserJobApplications from "./pages/UserJobApplications.vue";
 import FirmJobApplications from "./pages/FirmJobApplications.vue";
+import NotFound from "./pages/NotFound.vue";
 
 const routes = [
   { path: "/", name: "landing-route", component: Landing },
@@ -72,6 +73,11 @@ const routes = [
         component: FirmJobApplications,
       },
     ],
+  },
+    {
+    path: "/:pathMatch(.*)*",
+    name: "not-found",
+    component: NotFound,
   },
 ];
 

@@ -37,7 +37,7 @@
     <div v-if="isApplicationAlreadySent">
       <p class="application-sent-message">
         Application sent
-        {{ applicationDate ? timeSince(applicationDate) : "just now" }} .
+        {{ applicationDate ? timeSince(applicationDate) : "just now" }}.
       </p>
     </div>
     <div v-else>
@@ -81,7 +81,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { getJobFirmById, isApplicationSent } from "../api/firestore";
 import type { JobFirm } from "../models/job";
 import JobApplication from "../components/JobApplication.vue";
@@ -93,6 +93,7 @@ import cvAnalysisIllustration from "../assets/cv_analysis_illustration.png";
 const userStore = useUserStore();
 const user = userStore.userInfo || { google_uid: "", name: "", email: "" };
 const route = useRoute();
+const router = useRouter();
 const jobId = route.params.id as string;
 const isApplicationVisibile = ref(false);
 const isApplicationAlreadySent = ref(false);
@@ -119,6 +120,9 @@ const fetchJobDetails = async () => {
       } else {
         isApplicationAlreadySent.value = false;
       }
+    }
+    else{
+      router.push({ name: "not-found" }); 
     }
   }
 };
@@ -319,7 +323,7 @@ onMounted(async () => {
 
 .application-sent-message {
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: bold;
 }
 

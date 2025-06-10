@@ -214,13 +214,12 @@ def calculate_cv_score(cv, job_requirements, job_required_experience, job_title)
 
         try:
             generate_cv_report(final_score, job_title, extract_candidate_name(cv), extracted_skills, job_requirements, extracted_experience_years, min_required_years, max_required_years)
-            # unique_id = str(uuid.uuid4())
-            # bucket_name = os.getenv("FLASK_FIREBASE_STORAGE_BUCKET")
-            # folder_name = os.getenv("FLASK_FIREBASE_STORAGE_REPORTS_FOLDER", "cv_reports")
-            # blob_name = f"{folder_name}/{unique_id}.pdf"
-            # url = upload_to_google_storage("cv_report.pdf", bucket_name, blob_name)
-            #return final_score, message, url
-            return "", "", ""
+            unique_id = str(uuid.uuid4())
+            bucket_name = os.getenv("FLASK_FIREBASE_STORAGE_BUCKET")
+            folder_name = os.getenv("FLASK_FIREBASE_STORAGE_REPORTS_FOLDER", "cv_reports")
+            blob_name = f"{folder_name}/{unique_id}.pdf"
+            url = upload_to_google_storage("cv_report.pdf", bucket_name, blob_name)
+            return final_score, message, url
         except Exception as e:
             print(f"Error uploading CV report to GCS: {e}")
 
@@ -325,7 +324,7 @@ def generate_cv_report(score, job_title, candidate_name, extracted_skills, job_r
     c.setFont("Helvetica", 12)
     all_required_skills = [skill.title() for skills in job_requirements.values() for skill in skills]
     if sum(required) != 0:
-        chunk_size = 7
+        chunk_size = 6
         for i in range(0, len(all_required_skills), chunk_size):
             skills_chunk = all_required_skills[i:i+chunk_size]
             c.drawString(110, y_skills_text, f"• {', '.join(skills_chunk)}")
@@ -346,21 +345,21 @@ def generate_cv_report(score, job_title, candidate_name, extracted_skills, job_r
 
     if len(matched_skills) != 0:
         capitalized_matched_skills = [skill.title() for skill in matched_skills]
-        chunk_size = 7
+        chunk_size = 6
         for i in range(0, len(capitalized_matched_skills), chunk_size):
             skills_chunk = capitalized_matched_skills[i:i+chunk_size]
             c.drawString(110, y_skills_text, f"• {', '.join(skills_chunk)}")
             y_skills_text -= 18  # Move to next line for each chunk
     else:
         c.drawString(110, y_skills_text, "• No skills matched with the job requirements.")
-    y_skills_text -= 30
+    y_skills_text -= 20
 
     c.setFont("Helvetica-Bold", 16)
     c.drawString(100, y_skills_text, "Experience Match Summary")
 
     experience_max = max(extracted_years or 0, min_required_years or 0, max_required_years or 0)
-    experience_chart_height = 150 + (experience_max * 5)  
-    experience_y_offset = height - 640 - experience_chart_height  
+    experience_chart_height = 130 + (experience_max * 5)  
+    experience_y_offset = height - 630 - experience_chart_height  
 
     draw_experience_comparison(
         c,
@@ -486,12 +485,12 @@ def draw_experience_comparison(c, extracted_years, min_required_years, max_requi
 
     c.setFont("Helvetica", 12)
     if extracted_years >= min_required_years and (max_required_years == 0 or extracted_years <= max_required_years):
-        c.drawString(100, y_offset - 10, "✅ Your experience matches the job requirement.")
+        c.drawString(100, y_offset, "✅ Your experience matches the job requirement.")
     elif extracted_years < min_required_years:
         missing = round(min_required_years - extracted_years, 1)
-        c.drawString(100, y_offset - 10, f"❌ You are missing {missing} years of experience. Consider gaining more industry exposure.")
+        c.drawString(100, y_offset, f"❌ You are missing {missing} years of experience. Consider gaining more industry exposure.")
     else:
-        c.drawString(100, y_offset - 10, "✅ You exceed the maximum experience requirement. Well done!")
+        c.drawString(100, y_offset, "✅ You exceed the maximum experience requirement. Well done!")
 
 def format_career_path_message(career_paths):
 

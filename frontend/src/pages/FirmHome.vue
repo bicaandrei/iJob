@@ -290,7 +290,7 @@ onMounted(async () => {
   font-weight: 600;
   color: #111827; /* black */
   white-space: nowrap;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
 }
 
 .info {
