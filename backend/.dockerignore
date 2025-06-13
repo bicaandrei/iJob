@@ -1,0 +1,8 @@
+.venv_dev/
+.venv_prod/
+__pycache__/
+*.pyc
+.gitignore
+.dockerignore
+Dockerfile
+firebase-key.json

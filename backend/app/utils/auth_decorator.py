@@ -5,9 +5,8 @@ from firebase_admin import auth
 def firebase_auth_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-
         if request.method == "OPTIONS":
-            return '', 200
+            return '', 204
 
         auth_header = request.headers.get("Authorization", None)
 
@@ -18,7 +17,7 @@ def firebase_auth_required(f):
 
         try:
             decoded_token = auth.verify_id_token(id_token)
-            g.firebase_user = decoded_token  
+            g.firebase_user = decoded_token
         except Exception as e:
             return jsonify({"error": "Invalid or expired token", "details": str(e)}), 401
 

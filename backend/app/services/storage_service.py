@@ -1,9 +1,9 @@
 from google.cloud import storage
-from app.db.firebase_init import FIREBASE_KEY_PATH
+# Nu mai importăm FIREBASE_KEY_PATH
 
 def upload_to_google_storage(file_path: str, bucket_name: str, destination_blob_name: str):
     try:
-        storage_client = storage.Client.from_service_account_json(FIREBASE_KEY_PATH)
+        storage_client = storage.Client()
 
         bucket = storage_client.bucket(bucket_name)
 
