@@ -13,7 +13,8 @@ def create_app():
 
     CORS(app, resources={r"/api/*": {"origins": [
          "http://localhost:5173",
-         "http://192.168.100.42:5173"
+         "http://192.168.100.42:5173",
+        "https://ijob-cloud.web.app"
      ]}}, supports_credentials=True)
 
     main_bp = Blueprint('main', __name__, url_prefix='/api')
