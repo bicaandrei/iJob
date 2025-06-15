@@ -34,10 +34,11 @@ import router from "../router";
 import "../assets/styles.css";
 import { RETURN_TYPES, getErrorType } from "../utils/error-codes";
 import Snackbar from "../components/Snackbar.vue";
+import { setUserDocument } from "../api/firestore";
 
 const email = ref("");
 const password = ref("");
-const { loginWithEmail, loginWithGoogle } = useAuth();
+const { user, loginWithEmail, loginWithGoogle } = useAuth();
 const snackbarRef = ref<InstanceType<typeof Snackbar> | null>(null);
 
 const handleLoginWithEmail = async () => {
@@ -65,11 +66,14 @@ const handleLoginWithEmail = async () => {
 const handleLoginWithGoogle = async () => {
   const return_type: RETURN_TYPES = await loginWithGoogle();
   if (return_type === RETURN_TYPES.SUCCESS) {
-    snackbarRef.value?.showSnackbar("Login was successful!", "success");
+    await setUserDocument(
+      user.value?.uid || "",
+      user.value?.email || "",
+      user.value?.displayName || "Anonymous",
+      user.value?.photoURL || ""
+    );
 
-    setTimeout(() => {
-      router.push({ name: "home-route" });
-    }, 2000);
+    router.push({ name: "home-route" });
   } else {
     displayError(RETURN_TYPES.GOOGLE_LOGIN_FAILED);
   }
