@@ -118,6 +118,8 @@ const saveChanges = async () => {
       return;
     }
 
+    console.log(user)
+
     const return_type = await editUserDocument(
       user.google_uid,
       userFields.email,

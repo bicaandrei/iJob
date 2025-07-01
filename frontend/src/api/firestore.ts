@@ -75,6 +75,7 @@ const setUserDocument = async (
       email: email || "",
       name: name || "Anonymous",
       profile_pic: profile_pic || "",
+      telephone: "",
       is_firm: false,
       created_at: new Date(),
     });

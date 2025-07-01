@@ -349,6 +349,7 @@ onMounted(() => {
         // if (jobData.techStack.length === 1 && jobData.techStack[0] === "Any") {
         //   jobData.techStack = [];
         // }
+        searchedLocation.value = jobData.location || "";
         job.value = jobData;
       }
     });

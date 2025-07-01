@@ -321,7 +321,7 @@ p {
 
   .cv-analysis-illustration {
     max-width: 100%;
-    margin-top: -60px;
+    margin-top: -80px;
   }
 }
 </style>
